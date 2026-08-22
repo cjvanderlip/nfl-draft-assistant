@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Draft Sharks Companion</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --panel-alt: #1f2937;
+        --border: #374151;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+        --warning: #f59e0b;
+        --success: #34d399;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: linear-gradient(180deg, var(--bg), #111827);
+        color: var(--text);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 20px 60px;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 2rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: var(--accent);
+        color: #062033;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 16px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: var(--panel-alt);
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .card {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 0.9rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .stat {
+        font-size: 2rem;
+        font-weight: 700;
+      }
+
+      .panel {
+        background: rgba(17, 24, 39, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 18px;
+      }
+
+      pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 0.92rem;
+        line-height: 1.6;
+        color: var(--text);
+      }
+
+      .status {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--success);
+        border: 1px solid rgba(52, 211, 153, 0.4);
+      }
+
+      .status.degraded {
+        background: rgba(245, 158, 11, 0.12);
+        color: var(--warning);
+        border-color: rgba(245, 158, 11, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Draft Sharks Companion</h1>
+        <div class="mode-row">
+          <label for="draft-mode">Mode</label>
+          <select id="draft-mode">
+            <option value="practice">Practice mock draft</option>
+            <option value="live">Real draft mode</option>
+          </select>
+        </div>
+        <div class="controls">
+          <button id="load-health">Load Health</button>
+          <button id="load-backtest" class="secondary">Run draft flow</button>
+        </div>
+      </div>
+
+      <div class="cards">
+        <div class="card">
+          <h2>API State</h2>
+          <div id="api-status" class="status">Loading...</div>
+        </div>
+        <div class="card">
+          <h2>Database</h2>
+          <div id="db-status" class="stat">--</div>
+        </div>
+        <div class="card">
+          <h2>Provider</h2>
+          <div id="provider-status" class="stat">--</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <pre id="output">Fetching JSON...</pre>
+      </div>
+    </div>
+
+    <script>
+      const output = document.getElementById('output');
+      const apiStatus = document.getElementById('api-status');
+      const dbStatus = document.getElementById('db-status');
+      const providerStatus = document.getElementById('provider-status');
+      const draftMode = document.getElementById('draft-mode');
+
+      async function loadJson(url) {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      }
+
+      function renderHealth(data) {
+        const status = data.status || 'unknown';
+        apiStatus.textContent = status.toUpperCase();
+        apiStatus.classList.toggle('degraded', status !== 'ok');
+        dbStatus.textContent = data.dependencies?.database || 'unknown';
+        providerStatus.textContent = data.dependencies?.provider || 'unknown';
+        output.textContent = JSON.stringify(data, null, 2);
+      }
+
+      async function loadHealth() {
+        try {
+          const data = await loadJson('http://localhost:3000/health');
+          renderHealth(data);
+        } catch (error) {
+          output.textContent = 'Error fetching /health: ' + error.message;
+        }
+      }
+
+      async function loadBacktest() {
+        const mode = draftMode.value;
+
+        if (mode === 'live') {
+          output.textContent = JSON.stringify({
+            mode: 'live',
+            note: 'Real draft mode is intentionally kept for live draft usage only. Practice mock data stays isolated from the live path.',
+            health: await loadJson('http://localhost:3000/health')
+          }, null, 2);
+          apiStatus.textContent = 'LIVE';
+          apiStatus.classList.remove('degraded');
+          dbStatus.textContent = '—';
+          providerStatus.textContent = '—';
+          return;
+        }
+
+        try {
+          const backtestPayload = {
+            picks: [
+              { managerId: 'm1', playerId: 'p1', position: 'RB', overallPick: 1 },
+              { managerId: 'm2', playerId: 'p2', position: 'WR', overallPick: 2 },
+              { managerId: 'm3', playerId: 'p3', position: 'QB', overallPick: 3 },
+              { managerId: 'm4', playerId: 'p4', position: 'TE', overallPick: 4 },
+              { managerId: 'm5', playerId: 'p5', position: 'RB', overallPick: 5 }
+            ]
+          };
+
+          const heuristicPayload = {
+            candidates: [
+              {
+                playerId: 'p1',
+                baseRank: 4,
+                signals: {
+                  contractYear: 0.5,
+                  targetShareVolatility: 0.1,
+                  olineUpgrade: 0.1,
+                  rzRegression: 0.1,
+                  gameScriptLeverage: 0.1
+                }
+              },
+              {
+                playerId: 'p2',
+                baseRank: 7,
+                signals: {
+                  contractYear: 0.2,
+                  targetShareVolatility: 0.4,
+                  olineUpgrade: 0.2,
+                  rzRegression: 0.1,
+                  gameScriptLeverage: 0.1
+                }
+              }
+            ]
+          };
+
+          const rosterPayload = {
+            strategyProfile: 'HERO_RB',
+            starters: { RB: 2, WR: 2 },
+            draftedPlayers: [{ playerId: 'rb-a', position: 'RB' }],
+            candidates: [
+              { playerId: 'wr-1', position: 'WR', compositeScore: 1 },
+              { playerId: 'rb-b', position: 'RB', compositeScore: 4 }
+            ]
+          };
+
+          const [backtestResponse, heuristicResponse, rosterResponse] = await Promise.all([
+            fetch('http://localhost:3000/predictions/backtest', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify(backtestPayload)
+            }),
+            fetch('http://localhost:3000/heuristics/score', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify(heuristicPayload)
+            }),
+            fetch('http://localhost:3000/roster/recommendations', {
+              method: 'POST',
+              headers: { 'content-type': 'application/json' },
+              body: JSON.stringify(rosterPayload)
+            })
+          ]);
+
+          if (!backtestResponse.ok || !heuristicResponse.ok || !rosterResponse.ok) {
+            throw new Error('One of the practice draft endpoints failed.');
+          }
+
+          const [backtestData, heuristicData, rosterData] = await Promise.all([
+            backtestResponse.json(),
+            heuristicResponse.json(),
+            rosterResponse.json()
+          ]);
+
+          output.textContent = JSON.stringify({
+            mode: 'practice',
+            note: 'Practice mock draft data is being used. This does not affect the live draft path.',
+            backtest: backtestData,
+            heuristicScoring: heuristicData,
+            rosterRecommendations: rosterData
+          }, null, 2);
+          apiStatus.textContent = 'PRACTICE';
+          apiStatus.classList.remove('degraded');
+          dbStatus.textContent = '—';
+          providerStatus.textContent = '—';
+        } catch (error) {
+          output.textContent = 'Error fetching practice draft data: ' + error.message;
+        }
+      }
+
+      document.getElementById('load-health').addEventListener('click', loadHealth);
+      document.getElementById('load-backtest').addEventListener('click', loadBacktest);
+      draftMode.addEventListener('change', () => {
+        if (draftMode.value === 'live') {
+          apiStatus.textContent = 'LIVE';
+        } else {
+          apiStatus.textContent = 'PRACTICE';
+        }
+      });
+      loadHealth();
+    </script>
+  </body>
+</html>

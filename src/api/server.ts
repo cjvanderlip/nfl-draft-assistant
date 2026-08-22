@@ -1,4 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { dirname, extname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 import { buildHealthResponse, type DependencyHealth } from './routes/health.js';
@@ -85,9 +88,55 @@ interface RequestHardeningState {
   rateLimitWindows: Map<string, RateLimitWindowState>;
 }
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const projectRoot = join(__dirname, '..', '..', '..');
+const publicDir = join(projectRoot, 'public');
+
 function writeJson(response: ServerResponse, statusCode: number, payload: unknown): void {
   response.writeHead(statusCode, { 'content-type': 'application/json; charset=utf-8' });
   response.end(JSON.stringify(payload));
+}
+
+function getContentType(filePath: string): string {
+  switch (extname(filePath).toLowerCase()) {
+    case '.html':
+      return 'text/html; charset=utf-8';
+    case '.css':
+      return 'text/css; charset=utf-8';
+    case '.js':
+      return 'application/javascript; charset=utf-8';
+    case '.json':
+      return 'application/json; charset=utf-8';
+    case '.svg':
+      return 'image/svg+xml';
+    default:
+      return 'application/octet-stream';
+  }
+}
+
+async function serveStaticAsset(pathname: string): Promise<{ statusCode: number; contentType: string; body: Buffer } | null> {
+  const normalizedPath = pathname === '/' ? '/index.html' : pathname;
+  const relativePath = normalizedPath.replace(/^\/+/, '');
+  if (!relativePath || relativePath.includes('..')) {
+    return null;
+  }
+
+  const candidatePath = normalize(join(publicDir, relativePath));
+  if (!candidatePath.startsWith(publicDir)) {
+    return null;
+  }
+
+  try {
+    const body = await readFile(candidatePath);
+    return {
+      statusCode: 200,
+      contentType: getContentType(candidatePath),
+      body,
+    };
+  } catch {
+    return null;
+  }
 }
 
 function isHardeningProtectedRoute(method: string | undefined, pathname: string): boolean {
@@ -1193,7 +1242,16 @@ export function createApiServer(options: ApiServerOptions = {}): Server {
     });
   }
 
-  const server = createServer((request, response) => {
+  const server = createServer(async (request, response) => {
+    if (request.method === 'GET') {
+      const staticAsset = await serveStaticAsset(request.url ?? '/');
+      if (staticAsset) {
+        response.writeHead(staticAsset.statusCode, { 'content-type': staticAsset.contentType });
+        response.end(staticAsset.body);
+        return;
+      }
+    }
+
     void handleRequest(request, response, runtimeOptions).catch((error: unknown) => {
       observability.incrementCounter('api.requests.internal_error');
       console.error('API request failed.', error);

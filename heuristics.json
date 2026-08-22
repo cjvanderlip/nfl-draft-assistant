@@ -1,0 +1,31 @@
+{
+    "weights":  {
+                    "contractYearBump":  0.7,
+                    "targetShareVolatility":  0.15,
+                    "olineUpgrade":  0.1,
+                    "rzRegression":  0.12,
+                    "gameScriptLeverage":  0.08
+                },
+    "candidates":  [
+                       {
+                           "playerId":  "p1",
+                           "baseRank":  5,
+                           "adjustedRank":  1,
+                           "signalBreakdown":  {
+                                                   "contractYear":  0.5,
+                                                   "targetShareVolatility":  0.2,
+                                                   "olineUpgrade":  0,
+                                                   "rzRegression":  0.1,
+                                                   "gameScriptLeverage":  0.1
+                                               },
+                           "weightedContributions":  {
+                                                         "contractYear":  0.35,
+                                                         "targetShareVolatility":  0.03,
+                                                         "olineUpgrade":  0,
+                                                         "rzRegression":  0.012,
+                                                         "gameScriptLeverage":  0.008
+                                                     },
+                           "compositeScore":  0.6
+                       }
+                   ]
+}
