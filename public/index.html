@@ -229,6 +229,30 @@
       .stat.need-alert { background: #2c1815; }
       .stat.need-alert b { color: var(--gone); font-size: 14px; }
 
+      #scout-dialog { max-width: 860px; }
+      #scout-body { max-height: 62vh; overflow-y: auto; }
+      .scout {
+        border-top: 1px solid var(--line);
+        padding: 10px 0;
+      }
+      .scout .head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+      .scout .name { font-weight: 600; }
+      .scout .name em { font-style: normal; color: var(--accent); }
+      .scout .meta { font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+      .scout .tells { margin: 4px 0 0; font-size: 13px; color: var(--risky); }
+      .scout .reach { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px; }
+      .scout .reach span {
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        padding: 1px 6px;
+        color: var(--muted);
+      }
+      .scout .reach span.early { color: var(--risky); border-color: #5c4420; }
+      .scout .reach span.late { color: var(--wait); border-color: #2f5544; }
+      .scout .thin { color: var(--faint); }
+
       #resume-box {
         background: var(--panel-2);
         border: 1px solid var(--accent);
@@ -361,11 +385,27 @@
       </div>
 
       <div class="toolbar">
+        <button id="scout-open">Scouting report</button>
+        <button id="deep-sim">Deep sim</button>
         <button id="resync-open">Paste draft results…</button>
         <button id="restart">New draft</button>
+        <button id="finish">Finish &amp; clear</button>
         <span class="threat-note" id="footnote"></span>
       </div>
     </div>
+
+    <dialog id="scout-dialog">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 12px">
+        <h2 style="margin: 0 0 4px; font-size: 17px">Scouting report</h2>
+        <button id="scout-close">Close</button>
+      </div>
+      <p class="hint" style="margin: 0 0 14px">
+        Every manager's measured habits, strongest first. Reach is picks ahead of market ADP:
+        positive means he takes that position early. Thin samples are pulled toward the league
+        average, so a number backed by few picks reads closer to normal than the raw history.
+      </p>
+      <div id="scout-body"></div>
+    </dialog>
 
     <dialog id="resync-dialog">
       <h2 style="margin-top: 0; font-size: 17px">Resync from draft results</h2>
@@ -627,6 +667,100 @@
           $('pick-input').focus();
         } catch (error) {
           $('resync-err').textContent = error.message;
+        }
+      });
+
+      /* ---------------- scouting report ---------------- */
+
+      /**
+       * Show every manager's measured tendencies.
+       *
+       * The sidebar only has room for the next few managers and two tells each,
+       * but the profiles carry far more: reach per position, when the first
+       * quarterback and tight end normally go, and how many picks each number
+       * rests on. That is worth reading before the draft and worth checking when
+       * somebody two picks away is sitting on a position you want.
+       */
+      $('scout-open').addEventListener('click', async () => {
+        $('scout-dialog').showModal();
+        $('scout-body').innerHTML = '<p class="hint">Loading…</p>';
+        try {
+          const data = await api(`/draft/profiles?leagueId=${encodeURIComponent(state.leagueId)}`);
+          const yourOwnerName = state.yourTeam;
+          const managers = data.managers
+            .slice()
+            .sort((a, b) => b.confidence - a.confidence);
+
+          $('scout-body').innerHTML = managers.map((manager) => {
+            const team = manager.teamNames[manager.teamNames.length - 1];
+            const isYou = team === yourOwnerName;
+            const reach = Object.entries(manager.reachByPosition)
+              .sort((a, b) => Math.abs(b[1].mean) - Math.abs(a[1].mean))
+              .map(([position, value]) => {
+                const cls = value.mean >= 6 ? 'early' : value.mean <= -6 ? 'late' : '';
+                const sign = value.mean > 0 ? '+' : '';
+                return `<span class="${cls}">${position} ${sign}${value.mean}`
+                  + `<span class="thin"> ·${value.sampleSize}</span></span>`;
+              }).join('');
+            const firstQb = manager.firstPositionRound.QB;
+            const firstTe = manager.firstPositionRound.TE;
+            const timing = [
+              typeof firstQb === 'number' ? `1st QB rd ${firstQb}` : null,
+              typeof firstTe === 'number' ? `1st TE rd ${firstTe}` : null,
+            ].filter(Boolean).join(' · ');
+            return `<div class="scout">
+              <div class="head">
+                <span class="name">${escapeHtml(team)}${isYou ? ' <em>(you)</em>' : ''}</span>
+                <span class="meta">${manager.seasons.length}y · ${manager.adpMatchedCount} picks matched · confidence ${manager.confidence}</span>
+              </div>
+              <div class="meta">overall reach ${manager.overallReach > 0 ? '+' : ''}${manager.overallReach}${timing ? ' · ' + timing : ''}</div>
+              ${manager.tells.length ? `<p class="tells">${manager.tells.map((tell) => escapeHtml(tell.label)).join(' · ')}</p>` : ''}
+              <div class="reach">${reach || '<span class="thin">no ADP-matched picks</span>'}</div>
+            </div>`;
+          }).join('');
+        } catch (error) {
+          $('scout-body').innerHTML = `<p class="err">${escapeHtml(error.message)}</p>`;
+        }
+      });
+
+      $('scout-close').addEventListener('click', () => $('scout-dialog').close());
+
+      /* ---------------- deep simulation ---------------- */
+
+      /**
+       * Re-run the current board with far more samples.
+       *
+       * Every pick triggers a 600-sample run, which is chosen to land before the
+       * next name is typed. On a genuinely close call the extra precision is worth
+       * a second of waiting.
+       */
+      $('deep-sim').addEventListener('click', async () => {
+        const button = $('deep-sim');
+        button.disabled = true;
+        button.textContent = 'Simulating…';
+        try {
+          state = await api('/draft/board?samples=4000');
+          render();
+        } catch (error) {
+          $('entry-msg').textContent = error.message;
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Deep sim';
+          $('pick-input').focus();
+        }
+      });
+
+      /* ---------------- finish ---------------- */
+
+      $('finish').addEventListener('click', async () => {
+        if (!window.confirm('Finish this draft and delete the saved snapshot? The board on screen stays until you reload.')) {
+          return;
+        }
+        try {
+          await api('/draft/board/discard', { method: 'POST' });
+          $('entry-msg').textContent = 'Draft finished. Snapshot cleared.';
+        } catch (error) {
+          $('entry-msg').textContent = error.message;
         }
       });
 

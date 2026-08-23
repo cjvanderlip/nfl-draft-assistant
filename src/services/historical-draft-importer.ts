@@ -1,8 +1,25 @@
-import { DraftPick } from '../../draft-models.js';
 import { assertNonEmptyString, assertNumberInRange, assertObject } from '../../validators.js';
 
+/**
+ * One pick read out of a CBS draft export.
+ *
+ * A plain record rather than a modelled entity: nothing downstream mutates a pick
+ * or asks it to validate itself — `loadHistoricalPicks` reads the round, the
+ * overall number, and the two ids, and builds manager profiles from them.
+ */
+export interface HistoricalDraftPick {
+  id: string;
+  leagueId: string;
+  season: number;
+  round: number;
+  overallPick: number;
+  managerId: string;
+  playerId: string;
+  pickedAt: string;
+}
+
 export interface HistoricalDraftImport {
-  picks: DraftPick[];
+  picks: HistoricalDraftPick[];
   managers: Record<string, string>;
   players: Record<string, { fullName: string; position: string; team: string }>;
 }
@@ -53,7 +70,7 @@ export function importHistoricalDraftCsv(
   assertNonEmptyString(leagueId, 'leagueId');
   assertNumberInRange(season, 'season', 2000, 2100);
 
-  const picks: DraftPick[] = [];
+  const picks: HistoricalDraftPick[] = [];
   const managers: Record<string, string> = {};
   const players: Record<string, { fullName: string; position: string; team: string }> = {};
   let currentRound: number | undefined;
@@ -110,7 +127,7 @@ export function importHistoricalDraftCsv(
 
     managers[managerId] = managerName;
     players[playerId] = { fullName, position, team };
-    picks.push(new DraftPick({
+    picks.push({
       id: createStableId('pick', `${leagueId}-${season}-${overallPick}`),
       leagueId: leagueId.trim(),
       season,
@@ -119,7 +136,7 @@ export function importHistoricalDraftCsv(
       managerId,
       playerId,
       pickedAt: new Date(0).toISOString(),
-    }));
+    });
   }
 
   assertObject(managers, 'managers');
