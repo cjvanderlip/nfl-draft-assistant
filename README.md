@@ -39,7 +39,12 @@ falls out of step.
 
 ### Before it lets you start
 
-Setup checks two things that become invisible the moment a draft is running:
+The team list loads in no particular order — it is the league's managers, not a draft order —
+so it always has to be reordered against the posted one. As you edit, a line under the box
+says who is currently sitting at your slot, and names the line your own team is on if it is
+somewhere else. That check runs while the mistake is still one edit away from being fixed.
+
+The server then re-checks two things that become invisible the moment a draft is running:
 
 - **Every team name resolves to a manager with history.** A misspelling is otherwise
   simulated as a league-average stranger with none of its own tendencies.

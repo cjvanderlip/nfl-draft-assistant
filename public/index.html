@@ -149,7 +149,7 @@
 
       /* Rows are a pick-entry surface, so the double-click that drafts a player
          must not leave his name selected behind the confirmation. */
-      tbody tr { cursor: pointer; user-select: none; }
+      tbody tr { cursor: pointer; -webkit-user-select: none; user-select: none; }
       tbody tr:hover td { background: #1c272d; }
       tbody tr.staged td {
         background: #16323a;
@@ -238,6 +238,17 @@
       }
       .stat.need-alert { background: #2c1815; }
       .stat.need-alert b { color: var(--gone); font-size: 14px; }
+
+      #slot-check {
+        font-size: 13px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        margin-top: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+      #slot-check.good { background: #162b23; color: var(--safe); border: 1px solid #2f5544; }
+      #slot-check.bad { background: #2c1815; color: #f0a596; border: 1px solid #6b3229; }
+      #slot-check:empty { display: none; }
 
       #scout-dialog { max-width: 860px; }
       #scout-body { max-height: 62vh; overflow-y: auto; }
@@ -333,8 +344,9 @@
       <div class="field">
         <label class="label" for="draft-order">Draft order — one team per line, slot 1 first</label>
         <textarea id="draft-order" spellcheck="false"></textarea>
+        <div id="slot-check"></div>
         <div class="hint">
-          Prefilled with last season's teams. <strong>Reorder them to match the posted draft order</strong>, then set your slot above.
+          Loaded in no particular order — <strong>reorder to match the posted draft order</strong>, then set your slot above.
           <button type="button" id="reload-teams" style="padding: 2px 8px; font-size: 12px;">Reload teams</button>
         </div>
       </div>
@@ -499,6 +511,49 @@
         }
       }
 
+      /** Team names that belong to you, matching the server's owner registry. */
+      const YOUR_TEAMS = [/^northern virginia vandals$/, /^deer valley vandals$/];
+
+      /**
+       * Say, while the order is still being edited, whose team sits at your slot.
+       *
+       * The prefill is a set of teams in no meaningful order, and it looks exactly
+       * like a draft order in a textarea labelled "slot 1 first". Reading that list
+       * and pressing Start silently builds a board about somebody else. The server
+       * catches it, but only after the board exists — this catches it while the
+       * mistake is still one line away from being fixed.
+       */
+      function checkSlot() {
+        const box = $('slot-check');
+        const teams = $('draft-order').value.split('\n').map((line) => line.trim()).filter(Boolean);
+        const slot = Number($('slot').value);
+        if (teams.length === 0 || !Number.isFinite(slot) || slot < 1) {
+          box.className = '';
+          box.textContent = '';
+          return;
+        }
+        const atSlot = teams[slot - 1];
+        if (!atSlot) {
+          box.className = 'bad';
+          box.textContent = `Slot ${slot} is empty — only ${teams.length} team${teams.length === 1 ? '' : 's'} listed.`;
+          return;
+        }
+        const yours = YOUR_TEAMS.some((pattern) => pattern.test(atSlot.toLowerCase()));
+        const mine = teams.findIndex((team) => YOUR_TEAMS.some((pattern) => pattern.test(team.toLowerCase())));
+        if (yours) {
+          box.className = 'good';
+          box.textContent = `✓ Slot ${slot} is ${atSlot} — that's you. ${teams.length} teams listed.`;
+        } else if (mine === -1) {
+          box.className = 'bad';
+          box.textContent = `Slot ${slot} is ${atSlot}. None of the listed teams is yours.`;
+        } else {
+          box.className = 'bad';
+          box.textContent = `Slot ${slot} is ${atSlot} — not you. Your team is on line ${mine + 1}: set the slot to ${mine + 1}, or move your team to line ${slot}.`;
+        }
+      }
+
+      $('draft-order').addEventListener('input', checkSlot);
+      $('slot').addEventListener('input', checkSlot);
       $('league').addEventListener('change', loadTeams);
       $('reload-teams').addEventListener('click', loadTeams);
       $('season').addEventListener('change', loadDataStatus);
