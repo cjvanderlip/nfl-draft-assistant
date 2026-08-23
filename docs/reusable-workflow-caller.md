@@ -7,3 +7,5 @@ Update the `uses:` line to point at your real reusable workflow, for example:
 ```yaml
 uses: cjvanderlip/some-repo/.github/workflows/reusable-ci.yml@main
 ```
+
+Also pass required inputs/secrets expected by the reusable workflow.
