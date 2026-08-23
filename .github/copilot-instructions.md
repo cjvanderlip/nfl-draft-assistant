@@ -1,4 +1,4 @@
-# NFL Draft Assistant - Project Conventions
+# War Room Wingman — project conventions
 
 ## Language and Runtime
 
@@ -21,26 +21,29 @@
 - Log errors with `console.error`, not `console.log`.
 - Provide helpful error messages that guide users to solutions.
 
-## Data Model
+## Data
 
-- Design schemas with clear entity relationships.
-- Validate all inputs at entry points.
-- Use consistent naming conventions for properties and methods.
-- Include timestamps (createdAt, updatedAt) for audit trails.
+- There is no database. Everything the draft board needs is read from `data/`, written
+  ahead of time by `npm run draft:prep`.
+- Prefer plain records over classes. Nothing in the draft path mutates a domain object or
+  asks it to validate itself.
+- Validate inputs at entry points — route handlers and exported service functions — using
+  the helpers in `validators.ts`. Throw `TypeError`; the API layer maps it to a 400.
 
 ## Testing
 
-- Use a testing framework appropriate to the project (Jest, Vitest, or Node.js assert).
-- Test files end with `.test.ts` or `.test.js`.
-- Each test function tests exactly one behavior.
-- Achieve minimum 80% code coverage for critical paths.
+- Vitest. Test files sit beside the code as `<name>.test.ts`.
+- Each test asserts one behaviour, and its name says what that behaviour is.
+- Tests must not touch the network. The cached files in `data/` are the fixtures.
+- Anything touching the draft-day path needs a test that would fail if it broke — this
+  runs live, once a year, with no second chance.
 
 ## Dependencies
 
-- Use well-maintained, popular packages only.
-- Minimize external dependencies; prefer built-in Node.js modules where feasible.
-- Document all dependencies and their versions in package.json.
-- Regularly audit dependencies for security vulnerabilities.
+- The project has **no runtime dependencies** and should keep it that way. The server is
+  Node's own `http`; the UI is one static file with no build step.
+- Dev dependencies are TypeScript and Vitest. Adding to either list needs a reason that
+  survives the question "what happens if this breaks at 7pm on draft night?"
 
 ## Documentation
 
@@ -55,9 +58,11 @@
 - Use conventional commit format: `type(scope): description`.
 - Keep commits atomic and logical.
 
-## Performance & Security
+## Performance
 
-- Minimize blocking operations; use async/await appropriately.
-- Validate and sanitize all user inputs.
-- Never hardcode secrets; use environment variables.
-- Implement proper authentication and authorization checks.
+- The board re-simulates on every pick. Keep that path under ~150ms; it is the only
+  latency budget that matters.
+- Escape anything rendered into the DOM. The UI builds HTML strings, so `escapeHtml` is
+  not optional.
+- The server binds localhost and has no auth by design: it is a second screen on one
+  laptop, not a service.
