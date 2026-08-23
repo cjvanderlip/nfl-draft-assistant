@@ -1,0 +1,9 @@
+name: Reusable Workflow Caller
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  call-reusable-workflow:
+    uses: owner/repo/.github/workflows/file.yml@ref
