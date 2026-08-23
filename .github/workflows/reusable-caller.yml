@@ -1,4 +1,4 @@
-name: Reusable Workflow Caller
+name: PR Checks via Reusable Workflow
 
 on:
   pull_request:
@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   call-reusable-workflow:
-    # Replace with your real reusable workflow reference.
-    uses: owner/repo/.github/workflows/file.yml@ref
-    secrets: inherit
+    uses: ./.github/workflows/reusable-pr-checks.yml
+    with:
+      node-version: '20'
+      run-tests: true
