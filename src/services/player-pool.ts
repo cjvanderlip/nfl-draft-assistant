@@ -41,6 +41,12 @@ export interface PlayerPoolEntry {
   byeWeek?: number;
   sleeperId?: string;
   injuryStatus?: string;
+  /**
+   * True when this player came from the fallback feed because the league's own
+   * scoring format does not rank him. His ADP is on a neighbouring market's
+   * scale, which is close enough to place him but not to reason about closely.
+   */
+  adpFromFallback?: boolean;
 }
 
 export interface PlayerPool {
@@ -236,6 +242,12 @@ function readByeWeek(value: unknown): number | undefined {
 export function buildPlayerPool(options: {
   season: number;
   adpEntries: AdpSourceEntry[];
+  /**
+   * Entries from a neighbouring scoring format, used only for players the primary
+   * feed does not rank. A name that will not resolve in the pick box stalls the
+   * board, and a stalled board puts every later pick on the wrong team.
+   */
+  supplementalAdpEntries?: AdpSourceEntry[];
   sleeperPlayers?: Record<string, SleeperSourceEntry>;
 }): PlayerPool {
   assertObject(options, 'options');
@@ -293,6 +305,37 @@ export function buildPlayerPool(options: {
       injuryStatus: sleeper?.injury_status ?? undefined,
     };
 
+    players.push(player);
+    byMatchKey.set(matchKey, player);
+  }
+
+  for (const entry of options.supplementalAdpEntries ?? []) {
+    assertObject(entry, 'supplemental adp entry');
+    const position = toDomainPosition(entry.position);
+    if (!position || typeof entry.adp !== 'number' || !Number.isFinite(entry.adp)) {
+      continue;
+    }
+    const team = normalizeTeam(entry.team);
+    const matchKey = buildMatchKey(position, entry.name, team);
+    if (byMatchKey.has(matchKey)) {
+      continue;
+    }
+    const sleeper = sleeperByKey.get(matchKey);
+    const player: PlayerPoolEntry = {
+      playerId: createPlayerId(position, entry.name, team),
+      matchKey,
+      fullName: entry.name.trim(),
+      searchAliases: buildSearchAliases(position, entry.name, team),
+      position,
+      team,
+      adp: entry.adp,
+      adpStdev: typeof entry.stdev === 'number' ? entry.stdev : undefined,
+      timesDrafted: typeof entry.times_drafted === 'number' ? entry.times_drafted : undefined,
+      byeWeek: readByeWeek(entry.bye) ?? readByeWeek(sleeper?.bye_week),
+      sleeperId: sleeper?.player_id,
+      injuryStatus: sleeper?.injury_status ?? undefined,
+      adpFromFallback: true,
+    };
     players.push(player);
     byMatchKey.set(matchKey, player);
   }

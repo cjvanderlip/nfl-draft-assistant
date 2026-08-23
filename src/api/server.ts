@@ -11,14 +11,17 @@ import { scoreHeuristicsFromPayload } from './routes/heuristics.js';
 import { scoreRosterFromPayload } from './routes/roster.js';
 import {
   buildBoardState,
+  describeSavedBoard,
+  discardSavedBoard,
   hasActiveBoard,
+  restoreBoard,
   resyncFromText,
   startBoard,
   submitPick,
   suggestPlayers,
   undoPick,
 } from './routes/board.js';
-import { loadManagerProfiles } from '../services/draft-data-store.js';
+import { loadAdpFreshness, loadManagerProfiles } from '../services/draft-data-store.js';
 import type { DraftRepository } from '../storage/repositories/draft-repository.js';
 import type { DependencyHealthTracker } from '../services/dependency-health.js';
 import { createRuntimeObservability, type ObservabilityEvent, type RuntimeObservability } from '../services/observability.js';
@@ -1167,6 +1170,33 @@ async function handleRequest(
     return;
   }
 
+  if (request.method === 'GET' && pathname === '/draft/board/saved') {
+    const saved = await describeSavedBoard();
+    if (!saved) {
+      writeJson(response, 404, { error: 'No saved draft board.' });
+      return;
+    }
+    writeJson(response, 200, saved);
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/draft/board/restore') {
+    const restored = await restoreBoard();
+    if (!restored) {
+      writeJson(response, 404, { error: 'No saved draft board could be restored.' });
+      return;
+    }
+    writeJson(response, 200, restored);
+    observability?.incrementCounter('api.draft.board.restored');
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/draft/board/discard') {
+    await discardSavedBoard();
+    writeJson(response, 200, { discarded: true });
+    return;
+  }
+
   if (request.method === 'POST' && pathname === '/draft/board/pick') {
     try {
       const payload = await readJsonBody(request);
@@ -1228,6 +1258,20 @@ async function handleRequest(
       }
       throw error;
     }
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/draft/data-status') {
+    const season = Number(searchParams.get('season') ?? new Date().getFullYear());
+    const [adp, profileSet] = await Promise.all([
+      Number.isFinite(season) ? loadAdpFreshness(season) : Promise.resolve(undefined),
+      loadManagerProfiles(),
+    ]);
+    writeJson(response, 200, {
+      season,
+      adp,
+      profilesGeneratedAt: profileSet?.generatedAt,
+    });
     return;
   }
 

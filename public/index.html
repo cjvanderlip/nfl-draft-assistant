@@ -198,6 +198,46 @@
         color: #e8c887;
         margin-bottom: 10px;
       }
+      .warn.danger { background: #2c1815; border-color: #6b3229; color: #f0a596; }
+
+      .banner {
+        padding: 9px 18px;
+        font-size: 13px;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 10px;
+        align-items: baseline;
+        flex-wrap: wrap;
+      }
+      .banner.danger { background: #2c1815; color: #f0a596; }
+      .banner.caution { background: #2a1f14; color: #e8c887; }
+      .banner b { font-weight: 700; }
+      .banner .spacer { flex: 1; }
+
+      .need {
+        display: inline-block;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: #3a2118;
+        color: var(--gone);
+        border: 1px solid #6b3229;
+        margin-right: 4px;
+      }
+      .stat.need-alert { background: #2c1815; }
+      .stat.need-alert b { color: var(--gone); font-size: 14px; }
+
+      #resume-box {
+        background: var(--panel-2);
+        border: 1px solid var(--accent);
+        border-radius: 8px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+      }
+      #resume-box h3 { margin: 0 0 4px; font-size: 15px; }
+      #resume-box p { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
 
       .roster-line { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
       .roster-line span { color: var(--muted); }
@@ -223,6 +263,15 @@
       <h1>War Room Wingman</h1>
       <p class="sub">Second screen to Draft Sharks. Tells you who survives until your next turn.</p>
 
+      <div id="resume-box" style="display: none">
+        <h3 id="resume-title"></h3>
+        <p id="resume-detail"></p>
+        <div style="display: flex; gap: 8px">
+          <button class="primary" id="resume-yes">Resume that draft</button>
+          <button id="resume-no">Start a new one</button>
+        </div>
+      </div>
+
       <div class="row">
         <div class="field">
           <label class="label" for="league">League</label>
@@ -245,6 +294,8 @@
         </div>
       </div>
 
+      <div id="setup-data" class="hint" style="margin: -4px 0 16px"></div>
+
       <div class="field">
         <label class="label" for="draft-order">Draft order — one team per line, slot 1 first</label>
         <textarea id="draft-order" spellcheck="false"></textarea>
@@ -254,12 +305,17 @@
         </div>
       </div>
 
+      <div id="setup-warnings"></div>
       <div class="err" id="setup-err"></div>
-      <button class="primary" id="start">Start draft</button>
+      <div style="display: flex; gap: 8px; align-items: center">
+        <button class="primary" id="start">Start draft</button>
+        <button id="start-anyway" style="display: none">Continue anyway</button>
+      </div>
     </div>
 
     <!-- ============ BOARD ============ -->
     <div id="board">
+      <div id="banners"></div>
       <div class="topbar" id="topbar"></div>
 
       <div class="entry">
@@ -361,11 +417,50 @@
         }
       }
 
+      /**
+       * Show how old the cached data is while there is still time to refresh it.
+       *
+       * Late-August ADP moves on preseason injuries, so a week-old file is a real
+       * difference in the numbers rather than a cosmetic one — and the setup
+       * screen is the last moment where re-running `draft:prep` costs nothing.
+       */
+      async function loadDataStatus() {
+        try {
+          const status = await api(`/draft/data-status?season=${Number($('season').value)}`);
+          const parts = [];
+          if (status.adp) {
+            parts.push(`${status.adp.format.toUpperCase()} · ${status.adp.teams}-team ADP`);
+            if (status.adp.sampledThrough) {
+              parts.push(`drafts through ${status.adp.sampledThrough}${
+                status.adp.ageInDays !== undefined ? ` (${status.adp.ageInDays}d ago)` : ''
+              }`);
+            }
+            if (status.adp.draftsSampled) {
+              parts.push(`${status.adp.draftsSampled.toLocaleString()} drafts sampled`);
+            }
+          } else {
+            parts.push(`No ADP cached for ${status.season} — run "npm run draft:prep"`);
+          }
+          $('setup-data').innerHTML = (status.adp && status.adp.stale)
+            ? `<span style="color: var(--risky)">⚠ ${escapeHtml(parts.join(' · '))} — re-run "npm run draft:prep" for current numbers.</span>`
+            : escapeHtml(parts.join(' · '));
+        } catch {
+          $('setup-data').textContent = '';
+        }
+      }
+
       $('league').addEventListener('change', loadTeams);
       $('reload-teams').addEventListener('click', loadTeams);
+      $('season').addEventListener('change', loadDataStatus);
 
-      $('start').addEventListener('click', async () => {
+      // A started board whose setup did not pass the audit. Held back from the
+      // board screen until it is either corrected or explicitly accepted, because
+      // both audit failures look entirely normal once the board is up.
+      let pendingState = null;
+
+      async function startDraft(force) {
         const draftOrder = $('draft-order').value.split('\n').map((line) => line.trim()).filter(Boolean);
+        $('setup-err').textContent = '';
         try {
           const next = await api('/draft/board', {
             method: 'POST',
@@ -377,15 +472,47 @@
               draftSlot: Number($('slot').value),
               teamCount: draftOrder.length,
               draftOrder,
+              force: force === true,
             }),
           });
-          state = next;
-          $('setup').style.display = 'none';
-          $('board').style.display = 'block';
-          render();
-          $('pick-input').focus();
+
+          if (next.setup && next.setup.warnings.length) {
+            pendingState = next;
+            $('setup-warnings').innerHTML = next.setup.warnings
+              .map((warning) => `<div class="warn danger">⚠ ${escapeHtml(warning)}</div>`)
+              .join('');
+            $('start-anyway').style.display = 'inline-block';
+            return;
+          }
+          enterBoard(next);
         } catch (error) {
+          // The server refuses to replace a draft that already has picks.
+          if (/already in progress/.test(error.message)) {
+            if (window.confirm(`${error.message}\n\nDiscard it and start over?`)) {
+              await startDraft(true);
+            }
+            return;
+          }
           $('setup-err').textContent = error.message;
+        }
+      }
+
+      function enterBoard(next) {
+        state = next;
+        pendingState = null;
+        $('setup-warnings').innerHTML = '';
+        $('start-anyway').style.display = 'none';
+        $('resume-box').style.display = 'none';
+        $('setup').style.display = 'none';
+        $('board').style.display = 'block';
+        render();
+        $('pick-input').focus();
+      }
+
+      $('start').addEventListener('click', () => startDraft(false));
+      $('start-anyway').addEventListener('click', () => {
+        if (pendingState) {
+          enterBoard(pendingState);
         }
       });
 
@@ -407,61 +534,68 @@
         }, 120);
       });
 
+      // Candidates offered by the last ambiguous query, so 1-4 can pick one
+      // without leaving the keyboard.
+      let pendingCandidates = [];
+
       $('pick-input').addEventListener('keydown', async (event) => {
+        if (pendingCandidates.length && /^[1-9]$/.test(event.key)) {
+          const chosen = pendingCandidates[Number(event.key) - 1];
+          if (chosen) {
+            event.preventDefault();
+            await commitPick({ matchKey: chosen.matchKey });
+            return;
+          }
+        }
         if (event.key !== 'Enter') return;
         const query = event.target.value.trim();
         if (!query) return;
         await submitPick(query);
       });
 
+      async function commitPick(body, suffix) {
+        const next = await api('/draft/board/pick', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        state = next.state;
+        pendingCandidates = [];
+        $('pick-input').value = '';
+        $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName}${suffix ?? ''}`;
+        render();
+        $('pick-input').focus();
+      }
+
       async function submitPick(query) {
         try {
-          const next = await api('/draft/board/pick', {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ query }),
-          });
-          state = next.state;
-          $('pick-input').value = '';
-          $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName}`;
-          render();
+          await commitPick({ query });
         } catch (error) {
           const candidates = error.body && error.body.candidates;
           if (candidates && candidates.length) {
-            $('entry-msg').innerHTML = 'Which one? ' + candidates
-              .slice(0, 4)
-              .map((c) => `<button style="padding:2px 8px;font-size:12px" data-key="${c.matchKey}">${escapeHtml(c.fullName)} (${c.position})</button>`)
+            pendingCandidates = candidates.slice(0, 4);
+            $('entry-msg').innerHTML = 'Which one? ' + pendingCandidates
+              .map((c, index) => `<button style="padding:2px 8px;font-size:12px" data-key="${escapeHtml(c.matchKey)}"><b>${index + 1}</b> ${escapeHtml(c.fullName)} (${c.position})</button>`)
               .join(' ');
             for (const button of $('entry-msg').querySelectorAll('button')) {
-              button.addEventListener('click', async () => {
-                const next = await api('/draft/board/pick', {
-                  method: 'POST',
-                  headers: { 'content-type': 'application/json' },
-                  body: JSON.stringify({ matchKey: button.dataset.key }),
-                });
-                state = next.state;
-                $('pick-input').value = '';
-                $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName}`;
-                render();
-                $('pick-input').focus();
-              });
+              button.addEventListener('click', () => commitPick({ matchKey: button.dataset.key }));
             }
           } else {
             // Never let an unmatched name stall the board — every pick after it
-            // would land on the wrong team.
-            $('entry-msg').innerHTML = `Not in the pool. <button style="padding:2px 8px;font-size:12px" id="force-offpool">Record "${escapeHtml(query)}" anyway</button>`;
-            $('force-offpool').addEventListener('click', async () => {
-              const next = await api('/draft/board/pick', {
-                method: 'POST',
-                headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ query, offPool: true }),
-              });
-              state = next.state;
-              $('pick-input').value = '';
-              $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName} (off pool)`;
-              render();
-              $('pick-input').focus();
-            });
+            // would land on the wrong team. The position is asked for because it
+            // feeds the mandatory-slot countdown; guessing it wrong would leave
+            // the board reporting a kicker as still needed.
+            pendingCandidates = [];
+            $('entry-msg').innerHTML = `Not in the pool. Record "${escapeHtml(query)}" as `
+              + ['QB', 'RB', 'WR', 'TE', 'K', 'DST']
+                .map((position) => `<button style="padding:2px 6px;font-size:12px" data-pos="${position}">${position}</button>`)
+                .join(' ');
+            for (const button of $('entry-msg').querySelectorAll('button')) {
+              button.addEventListener('click', () => commitPick(
+                { query, offPool: true, position: button.dataset.pos },
+                ' (off pool)',
+              ));
+            }
           }
         }
       }
@@ -520,6 +654,20 @@
         if (!state) return;
         const clock = state.onTheClock;
 
+        const banners = [];
+        for (const warning of (state.setup ? state.setup.warnings : [])) {
+          banners.push(`<div class="banner danger"><b>Check the setup</b><span>${escapeHtml(warning)}</span></div>`);
+        }
+        if (state.requirements && state.requirements.message) {
+          banners.push(`<div class="banner ${state.requirements.forced ? 'danger' : 'caution'}"><b>Roster</b><span>${escapeHtml(state.requirements.message)}</span></div>`);
+        }
+        if (state.adp && state.adp.stale) {
+          banners.push(`<div class="banner caution"><b>Stale ADP</b><span>Averaged from drafts through ${escapeHtml(state.adp.sampledThrough)} — ${state.adp.ageInDays} days ago. Re-run <code>npm run draft:prep</code> for current numbers.</span></div>`);
+        }
+        $('banners').innerHTML = banners.join('');
+
+        const needed = state.requirements ? state.requirements.needed : [];
+
         $('topbar').innerHTML = [
           `<div class="stat"><span class="label">Pick</span><b>${clock ? clock.overallPick : '—'}</b></div>`,
           `<div class="stat"><span class="label">Round</span><b>${clock ? clock.round : '—'}</b></div>`,
@@ -528,6 +676,12 @@
           `<div class="stat ${state.picksUntilNext === 0 ? 'alert' : ''}"><span class="label">Picks away</span><b>${state.picksUntilNext}</b></div>`,
           `<div class="stat"><span class="label">Then pick</span><b>${state.followingPick ?? '—'}</b></div>`,
           `<div class="stat"><span class="label">Gap</span><b>${state.picksBetweenTurns}</b></div>`,
+          `<div class="stat ${needed.length ? 'need-alert' : ''}"><span class="label">Still need</span><b>${
+            needed.length
+              ? needed.map((requirement) => `<span class="need">${requirement.position}</span>`).join('')
+              : '<span style="font-size:14px;color:var(--safe)">All set</span>'
+          }</b></div>`,
+          `<div class="stat"><span class="label">Turns left</span><b>${state.requirements ? state.requirements.turnsLeft : '—'}</b></div>`,
         ].join('');
 
         $('discipline').innerHTML = state.discipline
@@ -584,11 +738,61 @@
           .map((pick) => `<li><span>${pick.overallPick}</span> ${escapeHtml(pick.fullName)} <span>${escapeHtml(pick.teamName.slice(0, 14))}</span></li>`)
           .join('');
 
-        $('footnote').textContent = `${state.availableCount} players available · ${state.survival.samples} simulations`
+        const adp = state.adp;
+        $('footnote').textContent = `${state.availableCount} available · ${state.survival.samples} simulations`
+          + (adp ? ` · ${adp.format.toUpperCase()} ${adp.teams}-team ADP` : '')
+          + (adp && adp.ageInDays !== undefined ? `, ${adp.ageInDays}d old` : '')
           + (state.survival.note ? ` · ${state.survival.note}` : '');
       }
 
-      loadTeams();
+      /* ---------------- startup ---------------- */
+
+      $('resume-no').addEventListener('click', async () => {
+        $('resume-box').style.display = 'none';
+        await api('/draft/board/discard', { method: 'POST' }).catch(() => {});
+      });
+
+      $('resume-yes').addEventListener('click', async () => {
+        try {
+          enterBoard(await api('/draft/board/restore', { method: 'POST' }));
+        } catch (error) {
+          $('setup-err').textContent = `Could not restore: ${error.message}`;
+          $('resume-box').style.display = 'none';
+        }
+      });
+
+      /**
+       * Decide what to show on load.
+       *
+       * A refresh during a live draft must not land on the setup screen: the board
+       * is still on the server, and starting a new one from here is how sixty
+       * recorded picks get thrown away. So the running board is preferred, then
+       * the snapshot left by a previous process, and only then setup.
+       */
+      async function boot() {
+        try {
+          const live = await api('/draft/board');
+          enterBoard(live);
+          return;
+        } catch {
+          /* Nothing running; fall through. */
+        }
+
+        await Promise.all([loadTeams(), loadDataStatus()]);
+
+        try {
+          const saved = await api('/draft/board/saved');
+          if (saved.pickCount > 0) {
+            $('resume-title').textContent = `Resume ${saved.leagueId} ${saved.season}?`;
+            $('resume-detail').textContent = `${saved.pickCount} picks recorded, last saved ${new Date(saved.savedAt).toLocaleString()}.`;
+            $('resume-box').style.display = 'block';
+          }
+        } catch {
+          /* No snapshot to offer. */
+        }
+      }
+
+      boot();
     </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { parseDraftResultsText } from './board.js';
+import { auditSetup, parseDraftResultsText } from './board.js';
+import type { ManagerProfile } from '../../services/manager-profile-builder.js';
 
 describe('parseDraftResultsText', () => {
   it('reads the CBS CSV export rows in order', () => {
@@ -48,5 +49,45 @@ describe('parseDraftResultsText', () => {
 
   it('rejects empty input', () => {
     expect(() => parseDraftResultsText('   ')).toThrow(TypeError);
+  });
+});
+
+describe('auditSetup', () => {
+  const profiles = [
+    { ownerId: 'owner-vandals' },
+    { ownerId: 'owner-roswell-aliens' },
+    { ownerId: 'owner-dr-evil' },
+  ] as ManagerProfile[];
+
+  const order = ['Roswell Aliens', 'Dr Evil', 'Northern Virginia Vandals'];
+
+  it('passes a draft order that resolves cleanly with your team at your slot', () => {
+    const audit = auditSetup(order, 3, profiles);
+    expect(audit).toEqual({ unprofiledTeams: [], slotMatchesYourTeam: true, warnings: [] });
+  });
+
+  it('names team names with no profile behind them', () => {
+    const audit = auditSetup(['Roswell Alienz', 'Dr Evil', 'Northern Virginia Vandals'], 3, profiles);
+    expect(audit.unprofiledTeams).toEqual(['Roswell Alienz']);
+    expect(audit.warnings[0]).toMatch(/No draft history for "Roswell Alienz"/);
+  });
+
+  it('catches a slot pointing at somebody else', () => {
+    const audit = auditSetup(order, 1, profiles);
+    expect(audit.slotMatchesYourTeam).toBe(false);
+    expect(audit.warnings[0]).toMatch(/Slot 1 is "Roswell Aliens", which is not one of your teams/);
+  });
+
+  it('recognises the other league’s Vandals team', () => {
+    expect(auditSetup(['Deer Valley Vandals'], 1, profiles).slotMatchesYourTeam).toBe(true);
+  });
+
+  it('reports both problems at once', () => {
+    const audit = auditSetup(['Ghost Team', 'Dr Evil'], 1, profiles);
+    expect(audit.warnings).toHaveLength(2);
+  });
+
+  it('ignores blank lines left in the pasted order', () => {
+    expect(auditSetup(['Dr Evil', '   ', 'Northern Virginia Vandals'], 3, profiles).unprofiledTeams).toEqual([]);
   });
 });

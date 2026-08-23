@@ -12,9 +12,24 @@ import {
   type DraftBoard,
 } from '../../services/draft-board.js';
 import { simulateSurvival, type SurvivalResult } from '../../services/survival-engine.js';
-import { resolveOwner } from '../../services/owner-registry.js';
+import { isUserTeam, resolveOwner } from '../../services/owner-registry.js';
 import { searchPlayers, toDomainPosition, type PlayerPool, type PlayerPoolEntry } from '../../services/player-pool.js';
-import { loadManagerProfiles, loadPlayerPool, type DataStoreOptions } from '../../services/draft-data-store.js';
+import {
+  loadAdpFreshness,
+  loadManagerProfiles,
+  loadPlayerPool,
+  type AdpFreshness,
+  type DataStoreOptions,
+} from '../../services/draft-data-store.js';
+import {
+  clearBoardSnapshot,
+  loadBoardSnapshot,
+  saveBoardSnapshot,
+} from '../../services/board-persistence.js';
+import {
+  evaluateRosterRequirements,
+  type RosterRequirementStatus,
+} from '../../services/roster-requirements.js';
 import type { ManagerProfile } from '../../services/manager-profile-builder.js';
 
 export interface BoardSetupRequest {
@@ -24,6 +39,8 @@ export interface BoardSetupRequest {
   rounds?: number;
   draftSlot: number;
   draftOrder: string[];
+  /** Replace an in-progress board instead of refusing to. */
+  force?: boolean;
 }
 
 export interface BoardStateResponse {
@@ -45,6 +62,25 @@ export interface BoardStateResponse {
   availableCount: number;
   survival: SurvivalResult;
   discipline: DisciplineWarning[];
+  requirements: RosterRequirementStatus;
+  setup: BoardSetupAudit;
+  adp?: AdpFreshness;
+}
+
+/**
+ * What the board could and could not verify about the setup it was handed.
+ *
+ * Both of these are silent-failure modes: an unrecognised team name models a
+ * league-mate as a stranger, and a slot pointing at somebody else's team makes
+ * every number on the screen describe the wrong manager. Neither is detectable by
+ * looking at a working board, so both are reported on every response.
+ */
+export interface BoardSetupAudit {
+  /** Team names in the draft order with no historical profile behind them. */
+  unprofiledTeams: string[];
+  /** True when the team at your draft slot is one of yours. */
+  slotMatchesYourTeam: boolean;
+  warnings: string[];
 }
 
 export interface DisciplineWarning {
@@ -57,6 +93,9 @@ interface BoardSession {
   board: DraftBoard;
   profiles: ManagerProfile[];
   pool: PlayerPool;
+  setup: BoardSetupAudit;
+  adp?: AdpFreshness;
+  dataDirectory?: string;
 }
 
 let activeSession: BoardSession | undefined;
@@ -66,6 +105,37 @@ let activeSession: BoardSession | undefined;
  */
 export function resetBoardSession(): void {
   activeSession = undefined;
+}
+
+/**
+ * Check a proposed draft order against the profiles and the user's own teams.
+ *
+ * @param draftOrder - Team names in slot order.
+ * @param draftSlot - The user's one-based slot.
+ * @param profiles - Profiles available for this league.
+ * @returns Everything suspicious about the setup, or an empty audit.
+ */
+export function auditSetup(
+  draftOrder: string[],
+  draftSlot: number,
+  profiles: ManagerProfile[],
+): BoardSetupAudit {
+  const profiledOwnerIds = new Set(profiles.map((profile) => profile.ownerId));
+  const unprofiledTeams = draftOrder.filter((teamName) => teamName.trim().length > 0
+    && !profiledOwnerIds.has(resolveOwner(teamName).ownerId));
+
+  const teamAtYourSlot = draftOrder[draftSlot - 1];
+  const slotMatchesYourTeam = typeof teamAtYourSlot === 'string' && isUserTeam(teamAtYourSlot);
+
+  const warnings: string[] = [];
+  if (unprofiledTeams.length > 0) {
+    warnings.push(`No draft history for ${unprofiledTeams.map((name) => `"${name}"`).join(', ')}. Check the spelling — an unrecognised team is simulated as a league-average stranger, with none of its own tendencies.`);
+  }
+  if (!slotMatchesYourTeam) {
+    warnings.push(`Slot ${draftSlot} is "${teamAtYourSlot ?? '(empty)'}", which is not one of your teams. Every survival number, your roster, and the discipline warnings would describe that manager instead of you.`);
+  }
+
+  return { unprofiledTeams, slotMatchesYourTeam, warnings };
 }
 
 function requireSession(): BoardSession {
@@ -90,12 +160,20 @@ export async function startBoard(request: unknown, options?: DataStoreOptions): 
   assertArray(body.draftOrder, 'draftOrder');
   assertInteger(body.draftSlot, 'draftSlot', 1);
 
+  // A draft in progress is not recoverable from anywhere else, so replacing one
+  // has to be asked for rather than assumed. Without this an accidental refresh
+  // followed by "Start draft" silently discards every pick recorded so far.
+  if (activeSession && activeSession.board.picks.length > 0 && body.force !== true) {
+    throw new TypeError(`A draft with ${activeSession.board.picks.length} picks is already in progress. Send force:true to discard it and start over.`);
+  }
+
   const teamCount = body.teamCount ?? body.draftOrder.length;
   const rounds = body.rounds ?? 13;
 
-  const [pool, profileSet] = await Promise.all([
+  const [pool, profileSet, adp] = await Promise.all([
     loadPlayerPool(body.season, options),
     loadManagerProfiles(options),
+    loadAdpFreshness(body.season, options),
   ]);
 
   // The pool always contains 32 synthesized team defenses, so emptiness is not
@@ -125,8 +203,129 @@ export async function startBoard(request: unknown, options?: DataStoreOptions): 
     profiles,
   });
 
-  activeSession = { board, profiles, pool };
+  activeSession = {
+    board,
+    profiles,
+    pool,
+    setup: auditSetup(board.draftOrder, board.draftSlot, profiles),
+    adp,
+    dataDirectory: options?.dataDirectory,
+  };
+  await saveBoardSnapshot(board, options?.dataDirectory);
   return buildBoardState();
+}
+
+/**
+ * Rebuild the live board from the snapshot left by a previous run.
+ *
+ * The snapshot stores only the shape of the draft and the sequence of match keys;
+ * the pool and profiles are reloaded from disk and the picks replayed, so a
+ * restored board is built the same way a live one is rather than deserialized into
+ * a shape the rest of the code has never seen.
+ *
+ * @param options - Data directory overrides for tests.
+ * @returns The restored state, or undefined when there is no usable snapshot.
+ */
+export async function restoreBoard(options?: DataStoreOptions): Promise<BoardStateResponse | undefined> {
+  const snapshot = await loadBoardSnapshot(options?.dataDirectory);
+  if (!snapshot) {
+    return undefined;
+  }
+
+  const [pool, profileSet] = await Promise.all([
+    loadPlayerPool(snapshot.season, options),
+    loadManagerProfiles(options),
+  ]);
+  if (!profileSet) {
+    return undefined;
+  }
+  const profiles = profileSet.managers.filter((manager) => manager.leagueId === snapshot.leagueId);
+  if (profiles.length === 0) {
+    return undefined;
+  }
+
+  const board = createDraftBoard({
+    leagueId: snapshot.leagueId,
+    season: snapshot.season,
+    teamCount: snapshot.teamCount,
+    rounds: snapshot.rounds,
+    draftSlot: snapshot.draftSlot,
+    draftOrder: snapshot.draftOrder,
+    pool,
+    profiles,
+  });
+
+  for (const persisted of snapshot.picks) {
+    if (persisted.offPool) {
+      recordOffPoolPick(board, persisted.label ?? 'Unknown pick', persisted.position);
+      continue;
+    }
+    const player = board.available.get(persisted.matchKey);
+    if (!player) {
+      // The cached ADP changed under the snapshot. Keeping the slot filled matters
+      // more than the name in it, because every later pick hangs off the count.
+      recordOffPoolPick(board, persisted.matchKey, undefined);
+      continue;
+    }
+    recordPick(board, player);
+  }
+
+  activeSession = {
+    board,
+    profiles,
+    pool,
+    setup: auditSetup(board.draftOrder, board.draftSlot, profiles),
+    adp: await loadAdpFreshness(snapshot.season, options),
+    dataDirectory: options?.dataDirectory,
+  };
+  return buildBoardState();
+}
+
+/**
+ * Describe a resumable draft without loading it.
+ *
+ * @param options - Data directory overrides for tests.
+ * @returns A summary of the saved board, or undefined when there is none.
+ */
+export async function describeSavedBoard(options?: DataStoreOptions): Promise<{
+  leagueId: string;
+  season: number;
+  pickCount: number;
+  savedAt: string;
+} | undefined> {
+  const snapshot = await loadBoardSnapshot(options?.dataDirectory);
+  if (!snapshot) {
+    return undefined;
+  }
+  return {
+    leagueId: snapshot.leagueId,
+    season: snapshot.season,
+    pickCount: snapshot.picks.length,
+    savedAt: snapshot.savedAt,
+  };
+}
+
+/**
+ * Discard the saved snapshot so a finished draft is not offered for resume.
+ *
+ * @param options - Data directory overrides for tests.
+ */
+export async function discardSavedBoard(options?: DataStoreOptions): Promise<void> {
+  await clearBoardSnapshot(options?.dataDirectory);
+}
+
+/**
+ * Persist the live board after a change, without making callers wait for the disk.
+ *
+ * Draft-day latency is the whole product; a pick must land the moment it is typed.
+ * The snapshot is therefore written in the background and its failures are logged
+ * rather than propagated.
+ */
+function persistInBackground(): void {
+  if (!activeSession) {
+    return;
+  }
+  void saveBoardSnapshot(activeSession.board, activeSession.dataDirectory);
 }
 
 function buildDiscipline(board: DraftBoard, survival: SurvivalResult): DisciplineWarning[] {
@@ -161,7 +360,8 @@ function buildDiscipline(board: DraftBoard, survival: SurvivalResult): Disciplin
  * @returns Current board state.
  */
 export function buildBoardState(samples = 600): BoardStateResponse {
-  const { board } = requireSession();
+  const session = requireSession();
+  const { board } = session;
   const yourTeam = board.draftOrder[board.draftSlot - 1];
   const yourOwnerId = resolveOwner(yourTeam).ownerId;
   const nextOverall = board.picks.length + 1;
@@ -171,6 +371,7 @@ export function buildBoardState(samples = 600): BoardStateResponse {
   const turns = upcomingTurns(board, board.draftSlot);
 
   const clock = nextOverall <= totalPicks ? teamOnTheClock(board, nextOverall) : undefined;
+  const yourRoster = rosterFor(board, yourOwnerId);
 
   return {
     leagueId: board.leagueId,
@@ -191,13 +392,16 @@ export function buildBoardState(samples = 600): BoardStateResponse {
     followingPick: turns.followingPick,
     picksUntilNext: turns.picksUntilNext,
     picksBetweenTurns: turns.picksBetweenTurns,
-    yourRoster: rosterFor(board, yourOwnerId),
+    yourRoster,
     yourPicks: board.picks.filter((pick) => pick.ownerId === yourOwnerId),
     recentPicks: board.picks.slice(-8).reverse(),
     pickCount: board.picks.length,
     availableCount: board.available.size,
     survival,
     discipline: buildDiscipline(board, survival),
+    requirements: evaluateRosterRequirements(board, yourRoster),
+    setup: session.setup,
+    adp: session.adp,
   };
 }
 
@@ -210,11 +414,16 @@ export function buildBoardState(samples = 600): BoardStateResponse {
 export function submitPick(payload: unknown): { state?: BoardStateResponse; candidates?: PlayerPoolEntry[]; pick?: BoardPick } {
   assertObject(payload, 'payload');
   const { board } = requireSession();
-  const body = payload as { query?: unknown; matchKey?: unknown; offPool?: unknown };
+  const body = payload as { query?: unknown; matchKey?: unknown; offPool?: unknown; position?: unknown };
 
   if (body.offPool === true) {
     assertNonEmptyString(body.query, 'query');
-    const pick = recordOffPoolPick(board, body.query);
+    // The position matters for the caller's own mandatory-slot tracking: an
+    // unlisted kicker recorded as the default would leave the board still
+    // reporting a kicker as needed.
+    const position = toDomainPosition(typeof body.position === 'string' ? body.position : undefined);
+    const pick = recordOffPoolPick(board, body.query, position);
+    persistInBackground();
     return { pick, state: buildBoardState() };
   }
 
@@ -237,6 +446,7 @@ export function submitPick(payload: unknown): { state?: BoardStateResponse; cand
   }
 
   const pick = recordPick(board, player);
+  persistInBackground();
   return { pick, state: buildBoardState() };
 }
 
@@ -246,9 +456,9 @@ export function submitPick(payload: unknown): { state?: BoardStateResponse; cand
  * @returns The updated board state and the undone pick.
  */
 export function undoPick(): { state: BoardStateResponse; undone?: BoardPick } {
-  requireSession();
   const { board } = requireSession();
   const undone = undoLastPick(board);
+  persistInBackground();
   return { undone, state: buildBoardState() };
 }
 
@@ -322,6 +532,7 @@ export function resyncFromText(payload: unknown): { state: BoardStateResponse; a
     applied += 1;
   }
 
+  persistInBackground();
   return { state: buildBoardState(), applied, unresolved };
 }
 

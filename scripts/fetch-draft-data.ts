@@ -1,5 +1,8 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { LEAGUE_TEAM_COUNT, resolveScoringFormat } from '../src/config/league.js';
+import { parseHistoricalFileName } from '../src/services/draft-data-store.js';
 
 const FFC_BASE_URL = 'https://fantasyfootballcalculator.com/api/v1/adp';
 const SLEEPER_PLAYERS_URL = 'https://api.sleeper.app/v1/players/nfl';
@@ -11,16 +14,45 @@ interface FetchOptions {
   teams: number;
   currentSeason: number;
   historicalSeasons: number[];
+  historicalDirectory?: string;
   dataDirectory: string;
   skipSleeper: boolean;
 }
 
+/**
+ * List the seasons that actually have a draft export on disk.
+ *
+ * Hard-coding this list silently discards history: the B-League's 2021 export was
+ * sitting in the repo unused for a year because the list started at 2022, and
+ * seven of that season's twelve teams are still drafting. Reading the directory
+ * means a newly added export is picked up by the next `draft:prep`.
+ *
+ * @param directory - Historical CSV directory.
+ * @returns Ascending seasons found, or an empty array when the directory is unreadable.
+ */
+async function discoverHistoricalSeasons(directory: string): Promise<number[]> {
+  try {
+    const seasons = new Set<number>();
+    for (const fileName of await readdir(directory)) {
+      const parsed = fileName.toLowerCase().endsWith('.csv')
+        ? parseHistoricalFileName(fileName)
+        : undefined;
+      if (parsed && !parsed.duplicate) {
+        seasons.add(parsed.season);
+      }
+    }
+    return [...seasons].sort((left, right) => left - right);
+  } catch {
+    return [];
+  }
+}
+
 function parseArgs(argv: string[]): FetchOptions {
-  const format = (process.env.ADP_FORMAT ?? argv[0] ?? 'ppr').toLowerCase();
+  const format = resolveScoringFormat(process.env.ADP_FORMAT ?? argv[0]);
   if (!SUPPORTED_FORMATS.has(format)) {
     throw new TypeError(`ADP format must be one of: ${[...SUPPORTED_FORMATS].join(', ')}.`);
   }
-  const teams = Number(process.env.LEAGUE_TEAMS ?? argv[1] ?? 12);
+  const teams = Number(process.env.LEAGUE_TEAMS ?? argv[1] ?? LEAGUE_TEAM_COUNT);
   if (!Number.isInteger(teams) || teams < 4 || teams > 20) {
     throw new TypeError('LEAGUE_TEAMS must be an integer between 4 and 20.');
   }
@@ -29,7 +61,8 @@ function parseArgs(argv: string[]): FetchOptions {
     format,
     teams,
     currentSeason,
-    historicalSeasons: [2022, 2023, 2024, 2025].filter((season) => season < currentSeason),
+    historicalSeasons: [],
+    historicalDirectory: process.env.HISTORICAL_DIR ?? join(process.cwd(), 'historical-draft-data'),
     dataDirectory: process.env.DATA_DIR ?? join(process.cwd(), 'data'),
     skipSleeper: process.env.SKIP_SLEEPER === 'true',
   };
@@ -57,7 +90,12 @@ export async function fetchDraftData(options: FetchOptions): Promise<Array<{ fil
   await mkdir(adpDirectory, { recursive: true });
 
   const written: Array<{ file: string; records: number }> = [];
-  const seasons = [options.currentSeason, ...options.historicalSeasons];
+  const discovered = options.historicalDirectory
+    ? await discoverHistoricalSeasons(options.historicalDirectory)
+    : [];
+  const historical = (discovered.length > 0 ? discovered : options.historicalSeasons)
+    .filter((season) => season < options.currentSeason);
+  const seasons = [options.currentSeason, ...historical];
 
   for (const season of seasons) {
     const url = `${FFC_BASE_URL}/${options.format}?teams=${options.teams}&year=${season}`;

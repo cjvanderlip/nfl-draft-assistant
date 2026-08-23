@@ -6,3 +6,6 @@ coverage/
 # Downloaded feed caches — regenerate with "npm run data:fetch"
 data/sleeper-players.json
 data/adp/
+
+# Live draft snapshot — written continuously during a draft, resumed on restart
+data/live-board.json

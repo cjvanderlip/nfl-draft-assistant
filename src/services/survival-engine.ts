@@ -153,6 +153,7 @@ export function simulateSurvival(options: {
   slot?: number;
   samples?: number;
   candidateDepth?: number;
+  simulationDepth?: number;
   temperature?: number;
   random?: () => number;
 }): SurvivalResult {
@@ -169,9 +170,19 @@ export function simulateSurvival(options: {
   const fromPick = board.picks.length + 1;
   const totalPicks = board.teamCount * board.rounds;
 
-  const candidates = [...board.available.values()]
-    .sort((left, right) => left.adp - right.adp)
-    .slice(0, candidateDepth);
+  const available = [...board.available.values()].sort((left, right) => left.adp - right.adp);
+
+  // Opponents choose from a deeper pool than the one reported back. A manager who
+  // reaches thirty picks ahead of ADP — and this league has one who does exactly
+  // that at quarterback — has to be able to reach past the bottom of the displayed
+  // board, or every pick he makes is forced onto a player the user is watching and
+  // survival reads low across the whole list.
+  const simulationDepth = Math.max(
+    candidateDepth,
+    Math.min(options.simulationDepth ?? candidateDepth * 2, 400),
+  );
+  const simulationPool = available.slice(0, simulationDepth);
+  const candidates = simulationPool.slice(0, candidateDepth);
 
   const slotPicks: number[] = [];
   for (let overall = fromPick; overall <= totalPicks; overall += 1) {
@@ -247,7 +258,7 @@ export function simulateSurvival(options: {
 
       let bestEffective = Number.POSITIVE_INFINITY;
       const eligible: Array<{ player: PlayerPoolEntry; effective: number; roundWeight: number }> = [];
-      for (const player of candidates) {
+      for (const player of simulationPool) {
         if (taken.has(player.matchKey)) {
           continue;
         }

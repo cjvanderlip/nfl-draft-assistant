@@ -5,6 +5,7 @@ import { assertNonEmptyString, type Position } from '../../validators.js';
 import { importHistoricalDraftCsv } from './historical-draft-importer.js';
 import { buildMatchKey, buildPlayerPool, toDomainPosition, type AdpSourceEntry, type PlayerPool, type SleeperSourceEntry } from './player-pool.js';
 import type { ManagerProfileSet, ProfilePick, SeasonAdpIndex } from './manager-profile-builder.js';
+import { FALLBACK_SCORING_FORMAT, LEAGUE_SCORING_FORMAT, LEAGUE_TEAM_COUNT } from '../config/league.js';
 
 export interface DataStoreOptions {
   dataDirectory?: string;
@@ -13,8 +14,8 @@ export interface DataStoreOptions {
   teams?: number;
 }
 
-const DEFAULT_FORMAT = 'ppr';
-const DEFAULT_TEAMS = 12;
+const DEFAULT_FORMAT = LEAGUE_SCORING_FORMAT;
+const DEFAULT_TEAMS = LEAGUE_TEAM_COUNT;
 
 function dataDir(options: DataStoreOptions | undefined): string {
   return options?.dataDirectory ?? join(process.cwd(), 'data');
@@ -71,6 +72,67 @@ export async function loadAdpEntries(season: number, options?: DataStoreOptions)
   }
 }
 
+export interface AdpFreshness {
+  format: string;
+  teams: number;
+  /** Last day of drafts the feed averaged, as reported by the source. */
+  sampledThrough?: string;
+  /** Whole days between `sampledThrough` and now. */
+  ageInDays?: number;
+  /** Number of real drafts behind the averages. */
+  draftsSampled?: number;
+  stale: boolean;
+}
+
+/** Days after which late-August ADP has moved enough to be worth re-downloading. */
+const STALE_AFTER_DAYS = 3;
+
+/**
+ * Report how old the cached ADP for a season is.
+ *
+ * Fantasy Football Calculator stamps every response with the window of real drafts
+ * it averaged. That window, not the file's modification time, is what actually
+ * dates the numbers — a re-download that returns the same week of drafts is no
+ * fresher than the file it replaced.
+ *
+ * @param season - Season to inspect.
+ * @param options - Data directory, scoring format, and league size.
+ * @param now - Clock, injectable for tests.
+ * @returns Freshness summary, or undefined when the file is absent.
+ */
+export async function loadAdpFreshness(
+  season: number,
+  options?: DataStoreOptions,
+  now: () => Date = () => new Date(),
+): Promise<AdpFreshness | undefined> {
+  const format = options?.format ?? DEFAULT_FORMAT;
+  const teams = options?.teams ?? DEFAULT_TEAMS;
+  const file = join(dataDir(options), 'adp', adpFileName(format, teams, season));
+  try {
+    const parsed = JSON.parse(await readFile(file, 'utf8')) as {
+      meta?: { end_date?: string; total_drafts?: number };
+    };
+    const sampledThrough = parsed.meta?.end_date;
+    let ageInDays: number | undefined;
+    if (typeof sampledThrough === 'string') {
+      const sampled = Date.parse(`${sampledThrough}T00:00:00Z`);
+      if (Number.isFinite(sampled)) {
+        ageInDays = Math.max(0, Math.floor((now().getTime() - sampled) / 86_400_000));
+      }
+    }
+    return {
+      format,
+      teams,
+      sampledThrough,
+      ageInDays,
+      draftsSampled: parsed.meta?.total_drafts,
+      stale: ageInDays !== undefined && ageInDays > STALE_AFTER_DAYS,
+    };
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Read the cached Sleeper player metadata.
  *
@@ -94,11 +156,15 @@ export async function loadSleeperPlayers(options?: DataStoreOptions): Promise<Re
  * @returns Merged player pool.
  */
 export async function loadPlayerPool(season: number, options?: DataStoreOptions): Promise<PlayerPool> {
-  const [adpEntries, sleeperPlayers] = await Promise.all([
+  const format = options?.format ?? DEFAULT_FORMAT;
+  const [adpEntries, supplementalAdpEntries, sleeperPlayers] = await Promise.all([
     loadAdpEntries(season, options),
+    format === FALLBACK_SCORING_FORMAT
+      ? Promise.resolve([])
+      : loadAdpEntries(season, { ...options, format: FALLBACK_SCORING_FORMAT }),
     loadSleeperPlayers(options),
   ]);
-  return buildPlayerPool({ season, adpEntries, sleeperPlayers });
+  return buildPlayerPool({ season, adpEntries, supplementalAdpEntries, sleeperPlayers });
 }
 
 /**
