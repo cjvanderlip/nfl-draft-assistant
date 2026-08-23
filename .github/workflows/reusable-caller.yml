@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   call-reusable-workflow:
-    uses: cjvanderlip/nfl-draft-assistant/.github/workflows/reusable-pr-checks.yml@main
+    uses: cjvanderlip/github-workflows/.github/workflows/reusable-pr-checks.yml@main
     with:
       node-version: '20'
       run-tests: true
