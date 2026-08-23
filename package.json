@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "start": "npm run build && node dist/src/start.js",
+    "start:fast": "node dist/src/start.js",
     "test": "vitest run",
     "import:historical": "npm run build && node dist/scripts/import-historical-drafts.js",
     "backtest:predictions": "npm run build && node dist/scripts/backtest-predictions.js",

@@ -108,7 +108,15 @@ export async function replayDraft(options: ReplayOptions): Promise<void> {
   let pendingTargetPick: number | undefined;
 
   const predictNextTurn = (): void => {
-    const survival = simulateSurvival({ board, samples: options.samples, random, temperature: options.temperature });
+    const survival = simulateSurvival({
+      board,
+      samples: options.samples,
+      random,
+      temperature: options.temperature,
+      // Set REPLAY_SIM_DEPTH to re-measure calibration against a different
+      // opponent-pool depth than the one the live board uses.
+      simulationDepth: process.env.REPLAY_SIM_DEPTH ? Number(process.env.REPLAY_SIM_DEPTH) : undefined,
+    });
     if (survival.targetPick === undefined || survival.picksSimulated === 0) {
       return;
     }

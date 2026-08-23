@@ -21,9 +21,25 @@ day before, not on the clock.
 
 In the browser: choose the league, set the season and your draft slot, paste the draft order
 one team per line in slot order, and hit **Start draft**. Then type each pick as it happens
-and press Enter — two or three letters of a surname is usually enough. `Undo` fixes a
-mistake, and **Paste draft results** rebuilds the whole board from a CBS text dump if you
-fall behind.
+and press Enter — two or three letters of a surname is usually enough. When a name is
+ambiguous, press `1`-`4` to pick from the candidates without leaving the keyboard. `Undo`
+fixes a mistake, and **Paste draft results** rebuilds the whole board from a CBS text dump
+if you fall behind.
+
+Before it lets you onto the board, setup checks two things that are invisible once the
+draft is running: that every team name in the pasted order resolves to a manager with
+draft history, and that the team at your slot is actually yours. Both are silent failures
+otherwise — a misspelled name is simulated as a league-average stranger with none of its
+own tendencies, and a wrong slot makes every number on the screen describe someone else.
+You can override either warning, but you have to see it first.
+
+### If something goes wrong mid-draft
+
+Every pick is written to `data/live-board.json` as it is recorded. Refreshing the page
+reopens the running board rather than the setup screen, and if the server itself restarts,
+the setup screen offers to resume from the snapshot. Starting a new draft over one that
+already has picks now has to be confirmed. Use `npm run start:fast` to restart without
+waiting for a TypeScript build.
 
 ## What the numbers mean
 
@@ -35,6 +51,10 @@ Each intervening manager is simulated: he scores the available pool by ADP shift
 positional reach, weighted by how often he takes that position in that round, then picks with
 softmax noise. A few hundred replays of that sequence turn four years of habits into a
 probability.
+
+Opponents choose from a deeper pool than the one displayed (`simulationDepth`, default
+twice `candidateDepth`), so a manager who reaches far past the visible board can do so in
+the simulation instead of being forced onto a player you are watching.
 
 Raw simulation output is recalibrated against measured results — see `CALIBRATION_ANCHORS`
 in `src/services/survival-engine.ts`. Both raw and calibrated values are returned.
@@ -53,6 +73,15 @@ Across five held-out drafts (A-League 2023–2025, B-League 2024–2025) predict
 tracks actual survival within a few points per bucket, and name resolution against the ADP
 pool runs at about 99%. Re-run it if the league or scoring format changes.
 
+## Roster requirements
+
+Across the 108 team-seasons in `historical-draft-data/`, every roster finished with exactly
+one kicker (108 of 108) and one defense (106 of 108), and none finished without a
+quarterback. Those three are treated as mandatory slots: the top bar counts them down
+against your remaining turns and warns while there is still slack, rather than letting you
+discover in round 12 that the last two picks are already spoken for. See
+`src/services/roster-requirements.ts`.
+
 ## Configuration
 
 | Variable | Default | Purpose |
@@ -64,7 +93,14 @@ pool runs at about 99%. Re-run it if the league or scoring format changes.
 
 **The scoring format is not recorded anywhere in the draft exports.** Everything defaults to
 12-team PPR. If the leagues are half-PPR or standard, set `ADP_FORMAT` before `draft:prep`,
-or every reach number will be measured against the wrong market.
+or every reach number will be measured against the wrong market. The format in use is now
+shown on the setup screen and in the board footer so the assumption is at least visible —
+but confirming it against the league settings is still a manual step, and it is the single
+highest-leverage thing to check before draft day.
+
+The setup screen also shows how old the cached ADP is, dated by the window of real drafts
+the feed averaged rather than by the file's timestamp, and warns past three days. Late-August
+ADP moves on preseason injuries, so re-run `npm run draft:prep` the day before each draft.
 
 ## How the pieces fit
 
@@ -81,6 +117,8 @@ or every reach number will be measured against the wrong market.
 - `src/services/draft-board.ts` — live board: snake order, available pool, rosters, turns.
 - `src/services/survival-engine.ts` — the Monte Carlo simulation and its calibration.
 - `src/api/routes/board.ts` — the draft-day endpoints.
+- `src/services/roster-requirements.ts` — mandatory-slot countdown against remaining turns.
+- `src/services/board-persistence.ts` — the live snapshot that survives a restart.
 - `scripts/` — `fetch-draft-data`, `build-manager-profiles`, `replay-draft`.
 
 ## Draft-day API
@@ -93,6 +131,14 @@ or every reach number will be measured against the wrong market.
 - `POST /draft/board/resync` — rebuild the board from pasted CBS draft-results `text`.
 - `GET /draft/players?q=` — autocomplete against the available pool.
 - `GET /draft/profiles?leagueId=` — generated manager profiles and league shape.
+- `GET /draft/data-status?season=` — cached ADP age, scoring format, and profile build time.
+- `GET /draft/board/saved` — summary of a resumable draft, if one was left behind.
+- `POST /draft/board/restore` — rebuild the live board from that snapshot.
+- `POST /draft/board/discard` — throw the snapshot away.
+
+`POST /draft/board` refuses with `400` when a draft with picks is already running; send
+`force: true` to replace it. Every response carries a `setup` audit (unrecognised team
+names, whether your slot holds your team), a `requirements` countdown, and `adp` freshness.
 
 ## Inherited endpoints
 

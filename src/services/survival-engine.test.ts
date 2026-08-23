@@ -205,3 +205,61 @@ describe('simulateSurvival', () => {
     expect(Object.keys(bravo?.positionOdds ?? {}).length).toBeGreaterThan(0);
   });
 });
+
+describe('simulateSurvival simulation depth', () => {
+  it('reports only the requested candidate depth', () => {
+    const result = simulateSurvival({
+      board: makeBoard([profile({ ownerId: 'owner-alpha' })]),
+      samples: 40,
+      candidateDepth: 10,
+      random: createSeededRandom(7),
+    });
+
+    expect(result.players).toHaveLength(10);
+  });
+
+  it('lets a reaching manager draft past the reported board', () => {
+    // This manager takes quarterbacks 40 picks ahead of ADP, which in a
+    // 30-player pool means the deepest quarterbacks outrank everyone. With the
+    // simulation confined to the reported ten, he could never reach them.
+    const profiles = ['Alpha', 'Bravo', 'Charlie', 'Delta'].map((team) => profile({
+      ownerId: `owner-${team.toLowerCase()}`,
+      reachByPosition: { QB: { mean: 40, sampleSize: 12 } },
+      positionByRound: { 1: { QB: 0.95, RB: 0.05 }, 2: { QB: 0.95, RB: 0.05 } },
+    }));
+
+    const shallow = simulateSurvival({
+      board: makeBoard(profiles, 4),
+      samples: 200,
+      candidateDepth: 10,
+      simulationDepth: 10,
+      random: createSeededRandom(11),
+    });
+    const deep = simulateSurvival({
+      board: makeBoard(profiles, 4),
+      samples: 200,
+      candidateDepth: 10,
+      simulationDepth: 30,
+      random: createSeededRandom(11),
+    });
+
+    const meanSurvival = (players: Array<{ rawSurvivalProbability: number }>): number =>
+      players.reduce((sum, player) => sum + player.rawSurvivalProbability, 0) / players.length;
+
+    // Given somewhere else to reach, the reaching managers stop consuming the
+    // top of the board, so the reported players survive more often.
+    expect(meanSurvival(deep.players)).toBeGreaterThan(meanSurvival(shallow.players));
+  });
+
+  it('never simulates a shallower pool than it reports', () => {
+    const result = simulateSurvival({
+      board: makeBoard([profile({ ownerId: 'owner-alpha' })]),
+      samples: 20,
+      candidateDepth: 20,
+      simulationDepth: 5,
+      random: createSeededRandom(3),
+    });
+
+    expect(result.players).toHaveLength(20);
+  });
+});
