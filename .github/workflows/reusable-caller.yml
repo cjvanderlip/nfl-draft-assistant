@@ -1,10 +1,18 @@
-name: Reusable Workflow Caller
+name: PR Checks via Reusable Workflow
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   call-reusable-workflow:
-    if: ${{ false }} # TODO: replace `uses:` with your actual reusable workflow ref, then remove this guard
-    uses: owner/repo/.github/workflows/file.yml@ref
+    uses: cjvanderlip/github-workflows/.github/workflows/reusable-pr-checks.yml@main
+    with:
+      node-version: '20'
+      run-tests: true
+    secrets: inherit
