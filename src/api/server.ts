@@ -9,6 +9,16 @@ import { getLeagueSnapshot } from './routes/draft.js';
 import { runBacktestFromPayload } from './routes/backtest.js';
 import { scoreHeuristicsFromPayload } from './routes/heuristics.js';
 import { scoreRosterFromPayload } from './routes/roster.js';
+import {
+  buildBoardState,
+  hasActiveBoard,
+  resyncFromText,
+  startBoard,
+  submitPick,
+  suggestPlayers,
+  undoPick,
+} from './routes/board.js';
+import { loadManagerProfiles } from '../services/draft-data-store.js';
 import type { DraftRepository } from '../storage/repositories/draft-repository.js';
 import type { DependencyHealthTracker } from '../services/dependency-health.js';
 import { createRuntimeObservability, type ObservabilityEvent, type RuntimeObservability } from '../services/observability.js';
@@ -1128,6 +1138,113 @@ async function handleRequest(
       observability?.incrementCounter('api.snapshots.cleanup.error');
       throw error;
     }
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/draft/board') {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(response, 201, await startBoard(payload));
+      observability?.incrementCounter('api.draft.board.started');
+    } catch (error: unknown) {
+      if (error instanceof TypeError) {
+        writeJson(response, 400, { error: error.message });
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/draft/board') {
+    if (!hasActiveBoard()) {
+      writeJson(response, 404, { error: 'No draft board is active. Start one with POST /draft/board.' });
+      return;
+    }
+    const samplesParam = Number(searchParams.get('samples') ?? '600');
+    const samples = Number.isFinite(samplesParam) ? samplesParam : 600;
+    writeJson(response, 200, buildBoardState(samples));
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/draft/board/pick') {
+    try {
+      const payload = await readJsonBody(request);
+      const result = submitPick(payload);
+      if (!result.state) {
+        writeJson(response, 409, {
+          error: 'That query matches more than one available player.',
+          candidates: result.candidates,
+        });
+        return;
+      }
+      writeJson(response, 200, result);
+      observability?.incrementCounter('api.draft.board.pick');
+    } catch (error: unknown) {
+      if (error instanceof TypeError) {
+        writeJson(response, 400, { error: error.message });
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/draft/board/undo') {
+    try {
+      writeJson(response, 200, undoPick());
+    } catch (error: unknown) {
+      if (error instanceof TypeError) {
+        writeJson(response, 400, { error: error.message });
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  if (request.method === 'POST' && pathname === '/draft/board/resync') {
+    try {
+      const payload = await readJsonBody(request);
+      writeJson(response, 200, resyncFromText(payload));
+      observability?.incrementCounter('api.draft.board.resync');
+    } catch (error: unknown) {
+      if (error instanceof TypeError) {
+        writeJson(response, 400, { error: error.message });
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/draft/players') {
+    try {
+      writeJson(response, 200, { players: suggestPlayers(searchParams.get('q') ?? '', 8) });
+    } catch (error: unknown) {
+      if (error instanceof TypeError) {
+        writeJson(response, 400, { error: error.message });
+        return;
+      }
+      throw error;
+    }
+    return;
+  }
+
+  if (request.method === 'GET' && pathname === '/draft/profiles') {
+    const profileSet = await loadManagerProfiles();
+    if (!profileSet) {
+      writeJson(response, 404, { error: 'No manager profiles on disk. Run "npm run profiles:build" first.' });
+      return;
+    }
+    const leagueId = searchParams.get('leagueId')?.trim().toUpperCase();
+    writeJson(response, 200, {
+      generatedAt: profileSet.generatedAt,
+      leagues: profileSet.leagues,
+      managers: leagueId
+        ? profileSet.managers.filter((manager) => manager.leagueId === leagueId)
+        : profileSet.managers,
+    });
     return;
   }
 

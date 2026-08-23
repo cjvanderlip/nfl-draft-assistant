@@ -1,86 +1,105 @@
-# Draft Sharks Companion
+# War Room Wingman
 
-This project is the initial TypeScript foundation for the Draft Sharks Companion Tool described in the project plan. It includes the core domain models, validation helpers, draft analytics, a deterministic historical CSV importer, and repository boundaries for incremental ingestion work.
+A second screen for live drafts, sitting next to the Draft Sharks War Room. War Room ranks
+players against the market. This answers the one thing it cannot know: **given how your
+specific league-mates have drafted for the last four or five years, does this player come
+back to you at your next turn?**
 
-## Getting started
+Built for two leagues that draft on consecutive days — A-League (Northern Virginia Vandals)
+and B-League (Deer Valley Vandals) — from the CBS draft exports in `historical-draft-data/`.
+
+## Draft day, in order
 
 ```bash
 npm install
-npm run build
-npm test
-npm run import:historical
-npm run backtest:predictions
+npm run draft:prep     # download ADP + player metadata, then build manager profiles
+npm start              # http://localhost:3005
 ```
 
-## Included modules
+`draft:prep` writes everything to `data/` so nothing hits the network mid-draft. Run it the
+day before, not on the clock.
 
-- `draft-models.ts` - League, Manager, Player, DraftPick, and DraftSession models.
-- `validators.ts` - Shared validation utilities.
-- `draft-analytics.ts` - Team average pick and session summary helpers.
-- `draft-service.ts` - Live draft recommendation and session snapshot services.
-- `app.ts` - Small sample entry point that demonstrates the analytics in use.
-- `docs/schema.md` - Domain schema and Sprint 1 architecture handoff.
-- `src/services/historical-draft-importer.ts` - Normalizes historical CSV exports into draft records.
-- `src/services/prediction-engine.ts` - Predicts upcoming picks and backtests prediction quality against historical drafts.
-- `src/services/dependency-health.ts` - Tracks dynamic health for provider and database dependencies.
-- `src/services/heuristic-scorer.ts` - Applies configurable proprietary signal weights to player recommendations.
-- `src/services/roster-strategy.ts` - Enforces strategy-aware roster constraints and recommendation ordering.
-- `src/storage/repositories/draft-repository.ts` - Async repository contract and in-memory implementation.
+In the browser: choose the league, set the season and your draft slot, paste the draft order
+one team per line in slot order, and hit **Start draft**. Then type each pick as it happens
+and press Enter — two or three letters of a surname is usually enough. `Undo` fixes a
+mistake, and **Paste draft results** rebuilds the whole board from a CBS text dump if you
+fall behind.
 
-The historical import command reads `historical-draft-data/` and writes a normalized snapshot to `data/historical-drafts.json`. Custom input and output paths can be passed to the compiled script:
+## What the numbers mean
+
+The **Survives** column is the probability the player is still on the board at your next
+turn. When you are on the clock it looks past the current pick, so the question it answers
+is *"if I spend this pick on someone else, does he come back?"*
+
+Each intervening manager is simulated: he scores the available pool by ADP shifted by his own
+positional reach, weighted by how often he takes that position in that round, then picks with
+softmax noise. A few hundred replays of that sequence turn four years of habits into a
+probability.
+
+Raw simulation output is recalibrated against measured results — see `CALIBRATION_ANCHORS`
+in `src/services/survival-engine.ts`. Both raw and calibrated values are returned.
+
+### Is it actually predictive?
+
+`npm run replay` replays a historical draft through the live path with profiles trained
+*without* that season, then scores the predictions against what really happened:
 
 ```bash
-node dist/scripts/import-historical-drafts.js <input-directory> <output-file>
+node dist/scripts/replay-draft.js A-LEAGUE 2025 500
+node dist/scripts/replay-draft.js B-LEAGUE 2025 500
 ```
 
-Historical prediction backtesting reads the normalized output and reports aggregate top-1/top-3 and position-level metrics:
+Across five held-out drafts (A-League 2023–2025, B-League 2024–2025) predicted survival
+tracks actual survival within a few points per bucket, and name resolution against the ADP
+pool runs at about 99%. Re-run it if the league or scoring format changes.
 
-```bash
-node dist/scripts/backtest-predictions.js <historical-json-file>
-```
+## Configuration
 
-Live CBS configuration is read from `CBS_BASE_URL`, `CBS_ACCESS_TOKEN`, and optional `POLLING_INTERVAL_SECONDS` environment variables. The polling interval defaults to 15 seconds and must be between 5 and 300 seconds.
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ADP_FORMAT` | `ppr` | `ppr`, `half-ppr`, `standard`, `2qb`, `dynasty` |
+| `LEAGUE_TEAMS` | `12` | League size for the ADP feed |
+| `SEASON` | current year | Season to download |
+| `PORT` | `3005` | API and UI port |
 
-Snapshot retention scheduler configuration is available through:
+**The scoring format is not recorded anywhere in the draft exports.** Everything defaults to
+12-team PPR. If the leagues are half-PPR or standard, set `ADP_FORMAT` before `draft:prep`,
+or every reach number will be measured against the wrong market.
 
-- `SNAPSHOT_RETENTION_ENABLED` (default `true`)
-- `SNAPSHOT_RETENTION_INTERVAL_SECONDS` (default `900`, min `60`, max `86400`)
-- `SNAPSHOT_RETENTION_KEEP_LATEST` (default `100`, max `1000`)
+## How the pieces fit
 
-Alert threshold configuration is available through:
+- `src/services/player-pool.ts` — merges the ADP feed with Sleeper metadata. Name matching
+  strips punctuation and generational suffixes; team defenses match on team abbreviation
+  because the feeds disagree on the name ("Seattle Defense" versus "Seahawks DST").
+- `src/services/owner-registry.ts` — maps team names to owners, pooling the three people who
+  play in both leagues (you, Roswell Aliens, and Espanola — whose team is spelled "chile" in
+  2021 and "chili" after).
+- `src/services/manager-profile-builder.ts` — joins every historical pick to that season's
+  ADP and derives reach, position-by-round mix, and first-QB/TE timing. Thin samples shrink
+  toward a prior: overall reach toward the league mean, positional reach toward the manager's
+  own overall reach, so a four-pick tight end habit survives instead of being averaged away.
+- `src/services/draft-board.ts` — live board: snake order, available pool, rosters, turns.
+- `src/services/survival-engine.ts` — the Monte Carlo simulation and its calibration.
+- `src/api/routes/board.ts` — the draft-day endpoints.
+- `scripts/` — `fetch-draft-data`, `build-manager-profiles`, `replay-draft`.
 
-- `ALERT_ERROR_RATE_THRESHOLD` (default `0.2`, range `0..1`)
-- `ALERT_MIN_EVENT_VOLUME` (default `20`)
-- `ALERT_DISPATCH_ENABLED` (default `true`)
-- `ALERT_DISPATCH_COOLDOWN_SECONDS` (default `300`, min `1`, max `86400`)
-- `ALERT_WEBHOOK_URL` (optional webhook endpoint for alert delivery)
-- `ALERT_WEBHOOK_MAX_ATTEMPTS` (default `3`, min `1`, max `10`)
-- `ALERT_WEBHOOK_INITIAL_BACKOFF_MS` (default `250`, min `1`, max `60000`)
-- `ALERT_WEBHOOK_MIN_SEVERITY` (default `info`; `info|warning|critical`)
-- `ALERT_WEBHOOK_TEMPLATE` (default `[{severity}] {code}: {message} | metadata={metadata}`)
-- `ALERT_SLACK_ENABLED` (default `false`)
-- `ALERT_SLACK_WEBHOOK_URL` (optional Slack adapter webhook endpoint)
-- `ALERT_SLACK_MAX_ATTEMPTS` (default `3`, min `1`, max `10`)
-- `ALERT_SLACK_INITIAL_BACKOFF_MS` (default `250`, min `1`, max `60000`)
-- `ALERT_SLACK_MIN_SEVERITY` (default `warning`; `info|warning|critical`)
-- `ALERT_SLACK_TEMPLATE` (default `:rotating_light: [{severity}] {code} - {message}`)
-- `ALERT_EMAIL_ENABLED` (default `false`)
-- `ALERT_EMAIL_WEBHOOK_URL` (optional email adapter webhook endpoint)
-- `ALERT_EMAIL_MAX_ATTEMPTS` (default `3`, min `1`, max `10`)
-- `ALERT_EMAIL_INITIAL_BACKOFF_MS` (default `250`, min `1`, max `60000`)
-- `ALERT_EMAIL_MIN_SEVERITY` (default `critical`; `info|warning|critical`)
-- `ALERT_EMAIL_TEMPLATE` (default `[{severity}] {code}\n\n{message}\n\nmetadata={metadata}`)
-- `ALERT_ESCALATION_FAILURE_THRESHOLD` (default `3`, min `1`, max `20`)
-- `ALERT_MAX_SILENCE_SECONDS` (default `86400`, min `1`, max `604800`)
-- `ALERT_IDEMPOTENCY_ENABLED` (default `true`)
-- `ALERT_IDEMPOTENCY_TTL_SECONDS` (default `900`, min `1`, max `86400`)
-- `ALERT_RATE_LIMIT_ENABLED` (default `true`)
-- `ALERT_RATE_LIMIT_WINDOW_SECONDS` (default `60`, min `1`, max `3600`)
-- `ALERT_RATE_LIMIT_MAX_REQUESTS` (default `30`, min `1`, max `1000`)
+## Draft-day API
 
-Template placeholders supported by all alert channels: `{severity}`, `{code}`, `{message}`, `{metadata}`.
+- `POST /draft/board` — start a board (`leagueId`, `season`, `draftSlot`, `draftOrder`, `rounds`).
+- `GET /draft/board?samples=` — current state plus a fresh survival simulation.
+- `POST /draft/board/pick` — record a pick by `query` or `matchKey`. Returns `409` with
+  candidates when a query is ambiguous.
+- `POST /draft/board/undo` — undo the last pick.
+- `POST /draft/board/resync` — rebuild the board from pasted CBS draft-results `text`.
+- `GET /draft/players?q=` — autocomplete against the available pool.
+- `GET /draft/profiles?leagueId=` — generated manager profiles and league shape.
 
-## API endpoints
+## Inherited endpoints
+
+The repository also carries the earlier prototype's analytics, observability, and alerting
+routes. None of it runs during a draft; the draft-day path above is self-contained.
+
+### Legacy endpoint reference
 
 - `GET /health` - dependency health snapshot.
 - `GET /leagues/:leagueId/snapshot` - persisted league/session/pick state.

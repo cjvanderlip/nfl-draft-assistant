@@ -1,6 +1,6 @@
 import { createApiServer } from './api/server.js';
 
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.PORT ?? 3005);
 const server = createApiServer();
 
 server.on('error', (error: Error & { code?: string }) => {

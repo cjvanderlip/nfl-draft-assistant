@@ -2,3 +2,7 @@ node_modules/
 dist/
 coverage/
 .DS_Store
+
+# Downloaded feed caches — regenerate with "npm run data:fetch"
+data/sleeper-players.json
+data/adp/

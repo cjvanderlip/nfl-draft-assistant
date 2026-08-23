@@ -1,322 +1,594 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Draft Sharks Companion</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>War Room Wingman</title>
     <style>
       :root {
-        --bg: #0f172a;
-        --panel: #111827;
-        --panel-alt: #1f2937;
-        --border: #374151;
-        --text: #e5e7eb;
-        --muted: #94a3b8;
-        --accent: #38bdf8;
-        --warning: #f59e0b;
-        --success: #34d399;
+        --bg: #0d1216;
+        --panel: #151d22;
+        --panel-2: #1b262c;
+        --line: #26343b;
+        --text: #e8eff1;
+        --muted: #8ba3ab;
+        --faint: #5e747c;
+        --accent: #4fb2c2;
+        --safe: #5cb98b;
+        --wait: #7fc0a6;
+        --risky: #d9a441;
+        --gone: #dd7263;
+        --you: #4fb2c2;
       }
 
       * { box-sizing: border-box; }
 
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(180deg, var(--bg), #111827);
+        background: var(--bg);
         color: var(--text);
-      }
-
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 32px 20px 60px;
-      }
-
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 24px;
-        flex-wrap: wrap;
-      }
-
-      h1 {
-        margin: 0;
-        font-size: 2rem;
-      }
-
-      .controls {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+        font-size: 15px;
+        line-height: 1.45;
       }
 
       button {
-        background: var(--accent);
-        color: #062033;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 16px;
-        font-weight: 700;
+        font: inherit;
         cursor: pointer;
-      }
-
-      button.secondary {
-        background: var(--panel-alt);
+        border-radius: 6px;
+        border: 1px solid var(--line);
+        background: var(--panel-2);
         color: var(--text);
-        border: 1px solid var(--border);
+        padding: 8px 14px;
+      }
+      button:hover { border-color: var(--accent); }
+      button.primary { background: var(--accent); color: #08181c; border-color: var(--accent); font-weight: 600; }
+      button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
       }
 
-      .cards {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 16px;
-        margin-bottom: 24px;
+      input, textarea, select {
+        font: inherit;
+        background: #0f171b;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 8px 10px;
       }
 
-      .card {
-        background: rgba(17, 24, 39, 0.9);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px;
-      }
-
-      .card h2 {
-        margin: 0 0 10px;
-        font-size: 0.9rem;
-        color: var(--muted);
+      .label {
+        font-size: 11px;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        letter-spacing: 0.08em;
+        color: var(--faint);
+        font-weight: 600;
       }
 
+      /* ---------- setup ---------- */
+      #setup {
+        max-width: 760px;
+        margin: 48px auto;
+        padding: 28px 32px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+      }
+      #setup h1 { margin: 0 0 6px; font-size: 26px; letter-spacing: -0.02em; }
+      #setup p.sub { margin: 0 0 24px; color: var(--muted); }
+      .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+      .row { display: flex; gap: 12px; flex-wrap: wrap; }
+      .row > .field { flex: 1 1 140px; }
+      #draft-order { width: 100%; min-height: 190px; font-family: Consolas, monospace; font-size: 13px; }
+      .hint { font-size: 12px; color: var(--faint); }
+      .err { color: var(--gone); font-size: 13px; min-height: 18px; }
+
+      /* ---------- board ---------- */
+      #board { display: none; }
+      .topbar {
+        display: flex;
+        align-items: stretch;
+        gap: 1px;
+        background: var(--line);
+        border-bottom: 1px solid var(--line);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
       .stat {
-        font-size: 2rem;
-        font-weight: 700;
+        background: var(--panel);
+        padding: 10px 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 110px;
       }
+      .stat b { font-size: 21px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+      .stat.wide { flex: 1; }
+      .stat.you b { color: var(--you); }
+      .stat.alert { background: #2a1a17; }
+      .stat.alert b { color: var(--gone); }
 
-      .panel {
-        background: rgba(17, 24, 39, 0.9);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 18px;
+      .entry {
+        display: flex;
+        gap: 10px;
+        padding: 12px 18px;
+        background: var(--panel-2);
+        border-bottom: 1px solid var(--line);
+        align-items: center;
+        position: sticky;
+        top: 61px;
+        z-index: 4;
       }
+      #pick-input { flex: 1; font-size: 17px; padding: 10px 12px; }
+      #entry-msg { font-size: 13px; color: var(--muted); min-width: 200px; }
 
-      pre {
-        margin: 0;
-        white-space: pre-wrap;
-        word-break: break-word;
-        font-size: 0.92rem;
-        line-height: 1.6;
-        color: var(--text);
+      .cols {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 330px;
+        gap: 1px;
+        background: var(--line);
+        min-height: calc(100vh - 118px);
       }
+      .col { background: var(--bg); padding: 14px 18px; }
+      .col.side { background: var(--panel); }
 
-      .status {
+      table { border-collapse: collapse; width: 100%; }
+      th {
+        text-align: left;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--faint);
+        padding: 6px 8px;
+        border-bottom: 1px solid var(--line);
+        font-weight: 600;
+      }
+      td { padding: 7px 8px; border-bottom: 1px solid #1a2429; font-variant-numeric: tabular-nums; }
+      tr.take td { background: #1a2420; }
+      .pname { font-weight: 600; }
+      .pmeta { color: var(--faint); font-size: 12px; }
+      .pos {
         display: inline-block;
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 0.8rem;
+        width: 34px;
+        text-align: center;
+        font-size: 11px;
         font-weight: 700;
-        background: rgba(52, 211, 153, 0.15);
-        color: var(--success);
-        border: 1px solid rgba(52, 211, 153, 0.4);
+        padding: 2px 0;
+        border-radius: 4px;
+        background: var(--panel-2);
+        color: var(--muted);
+      }
+      .surv { font-weight: 700; font-size: 16px; text-align: right; }
+      .v-SAFE { color: var(--safe); }
+      .v-CAN_WAIT { color: var(--wait); }
+      .v-RISKY { color: var(--risky); }
+      .v-GONE_BY_YOUR_TURN { color: var(--gone); }
+      .chip {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 100px;
+        border: 1px solid currentColor;
+        white-space: nowrap;
+      }
+      .threat-note { font-size: 12px; color: var(--faint); }
+
+      .side h2 { font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--faint); margin: 0 0 10px; font-weight: 600; }
+      .side section { margin-bottom: 24px; }
+      .threat {
+        border-left: 2px solid var(--line);
+        padding: 7px 0 7px 10px;
+        margin-bottom: 8px;
+      }
+      .threat.next { border-left-color: var(--accent); }
+      .threat .who { font-weight: 600; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+      .threat .odds { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+      .threat .tell { font-size: 12px; color: var(--risky); margin-top: 2px; }
+      .conf { font-size: 11px; color: var(--faint); font-weight: 400; }
+
+      .warn {
+        background: #2a1f14;
+        border: 1px solid #5c4420;
+        border-radius: 6px;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #e8c887;
+        margin-bottom: 10px;
       }
 
-      .status.degraded {
-        background: rgba(245, 158, 11, 0.12);
-        color: var(--warning);
-        border-color: rgba(245, 158, 11, 0.4);
+      .roster-line { display: flex; gap: 10px; flex-wrap: wrap; font-size: 13px; }
+      .roster-line span { color: var(--muted); }
+      .roster-line b { color: var(--text); }
+
+      ul.picklist { list-style: none; margin: 0; padding: 0; font-size: 13px; }
+      ul.picklist li { padding: 3px 0; border-bottom: 1px solid #1a2429; display: flex; justify-content: space-between; gap: 8px; }
+      ul.picklist li span { color: var(--faint); }
+
+      .toolbar { display: flex; gap: 8px; padding: 10px 18px; border-top: 1px solid var(--line); background: var(--panel); flex-wrap: wrap; align-items: center; }
+      dialog { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 20px; max-width: 620px; width: 90%; }
+      dialog::backdrop { background: rgba(0, 0, 0, 0.6); }
+      #resync-text { width: 100%; min-height: 220px; font-family: Consolas, monospace; font-size: 12px; }
+
+      @media (max-width: 900px) {
+        .cols { grid-template-columns: 1fr; }
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="header">
-        <h1>Draft Sharks Companion</h1>
-        <div class="mode-row">
-          <label for="draft-mode">Mode</label>
-          <select id="draft-mode">
-            <option value="practice">Practice mock draft</option>
-            <option value="live">Real draft mode</option>
+    <!-- ============ SETUP ============ -->
+    <div id="setup">
+      <h1>War Room Wingman</h1>
+      <p class="sub">Second screen to Draft Sharks. Tells you who survives until your next turn.</p>
+
+      <div class="row">
+        <div class="field">
+          <label class="label" for="league">League</label>
+          <select id="league">
+            <option value="A-LEAGUE">A-League (Northern Virginia Vandals)</option>
+            <option value="B-LEAGUE">B-League (Deer Valley Vandals)</option>
           </select>
         </div>
-        <div class="controls">
-          <button id="load-health">Load Health</button>
-          <button id="load-backtest" class="secondary">Run draft flow</button>
+        <div class="field">
+          <label class="label" for="season">Season</label>
+          <input type="number" id="season" value="2026" />
+        </div>
+        <div class="field">
+          <label class="label" for="slot">Your slot</label>
+          <input type="number" id="slot" min="1" max="20" value="6" />
+        </div>
+        <div class="field">
+          <label class="label" for="rounds">Rounds</label>
+          <input type="number" id="rounds" min="1" max="30" value="13" />
         </div>
       </div>
 
-      <div class="cards">
-        <div class="card">
-          <h2>API State</h2>
-          <div id="api-status" class="status">Loading...</div>
-        </div>
-        <div class="card">
-          <h2>Database</h2>
-          <div id="db-status" class="stat">--</div>
-        </div>
-        <div class="card">
-          <h2>Provider</h2>
-          <div id="provider-status" class="stat">--</div>
+      <div class="field">
+        <label class="label" for="draft-order">Draft order — one team per line, slot 1 first</label>
+        <textarea id="draft-order" spellcheck="false"></textarea>
+        <div class="hint">
+          Prefilled with last season's teams. <strong>Reorder them to match the posted draft order</strong>, then set your slot above.
+          <button type="button" id="reload-teams" style="padding: 2px 8px; font-size: 12px;">Reload teams</button>
         </div>
       </div>
 
-      <div class="panel">
-        <pre id="output">Fetching JSON...</pre>
+      <div class="err" id="setup-err"></div>
+      <button class="primary" id="start">Start draft</button>
+    </div>
+
+    <!-- ============ BOARD ============ -->
+    <div id="board">
+      <div class="topbar" id="topbar"></div>
+
+      <div class="entry">
+        <input id="pick-input" list="player-list" placeholder="Type the pick that just happened, then Enter…" autocomplete="off" />
+        <datalist id="player-list"></datalist>
+        <button id="undo">Undo</button>
+        <span id="entry-msg"></span>
+      </div>
+
+      <div class="cols">
+        <div class="col">
+          <div id="discipline"></div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 46px">Pos</th>
+                <th>Player</th>
+                <th style="width: 62px" class="surv">ADP</th>
+                <th style="width: 88px" class="surv">Survives</th>
+                <th style="width: 108px">Verdict</th>
+                <th style="width: 180px">Biggest threat</th>
+              </tr>
+            </thead>
+            <tbody id="players"></tbody>
+          </table>
+        </div>
+
+        <div class="col side">
+          <section>
+            <h2>Before your next pick</h2>
+            <div id="threats"></div>
+          </section>
+          <section>
+            <h2>Your roster</h2>
+            <div class="roster-line" id="roster"></div>
+            <ul class="picklist" id="your-picks"></ul>
+          </section>
+          <section>
+            <h2>Last picks</h2>
+            <ul class="picklist" id="recent"></ul>
+          </section>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button id="resync-open">Paste draft results…</button>
+        <button id="restart">New draft</button>
+        <span class="threat-note" id="footnote"></span>
       </div>
     </div>
 
+    <dialog id="resync-dialog">
+      <h2 style="margin-top: 0; font-size: 17px">Resync from draft results</h2>
+      <p class="hint">
+        Paste the CBS draft-results text or grid. The board is rebuilt from scratch in the order the
+        players appear, so use this if you fall behind.
+      </p>
+      <textarea id="resync-text" spellcheck="false" placeholder="1,Roswell Aliens,Saquon Barkley RB | PHI ,,"></textarea>
+      <div class="err" id="resync-err"></div>
+      <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px">
+        <button id="resync-cancel">Cancel</button>
+        <button class="primary" id="resync-apply">Rebuild board</button>
+      </div>
+    </dialog>
+
     <script>
-      const output = document.getElementById('output');
-      const apiStatus = document.getElementById('api-status');
-      const dbStatus = document.getElementById('db-status');
-      const providerStatus = document.getElementById('provider-status');
-      const draftMode = document.getElementById('draft-mode');
+      const API = '';
+      const $ = (id) => document.getElementById(id);
+      let state = null;
+      let searchTimer;
 
-      async function loadJson(url) {
-        const response = await fetch(url);
+      async function api(path, options) {
+        const response = await fetch(API + path, options);
+        const body = await response.json().catch(() => ({}));
         if (!response.ok) {
-          throw new Error(`${response.status} ${response.statusText}`);
+          const error = new Error(body.error || `Request failed (${response.status})`);
+          error.body = body;
+          throw error;
         }
-        return response.json();
+        return body;
       }
 
-      function renderHealth(data) {
-        const status = data.status || 'unknown';
-        apiStatus.textContent = status.toUpperCase();
-        apiStatus.classList.toggle('degraded', status !== 'ok');
-        dbStatus.textContent = data.dependencies?.database || 'unknown';
-        providerStatus.textContent = data.dependencies?.provider || 'unknown';
-        output.textContent = JSON.stringify(data, null, 2);
-      }
+      /* ---------------- setup ---------------- */
 
-      async function loadHealth() {
+      async function loadTeams() {
+        const leagueId = $('league').value;
         try {
-          const data = await loadJson('http://localhost:3000/health');
-          renderHealth(data);
+          const data = await api(`/draft/profiles?leagueId=${encodeURIComponent(leagueId)}`);
+          const recent = data.managers
+            .filter((manager) => manager.seasons.includes(Math.max(...manager.seasons)))
+            .sort((a, b) => b.seasons.length - a.seasons.length);
+          const latestSeason = Math.max(...data.managers.flatMap((manager) => manager.seasons));
+          const active = data.managers.filter((manager) => manager.seasons.includes(latestSeason));
+          const names = (active.length ? active : recent).map((manager) => manager.teamNames[manager.teamNames.length - 1]);
+          $('draft-order').value = names.join('\n');
+          $('setup-err').textContent = '';
         } catch (error) {
-          output.textContent = 'Error fetching /health: ' + error.message;
+          $('setup-err').textContent = error.message + ' — run "npm run draft:prep" first.';
         }
       }
 
-      async function loadBacktest() {
-        const mode = draftMode.value;
+      $('league').addEventListener('change', loadTeams);
+      $('reload-teams').addEventListener('click', loadTeams);
 
-        if (mode === 'live') {
-          output.textContent = JSON.stringify({
-            mode: 'live',
-            note: 'Real draft mode is intentionally kept for live draft usage only. Practice mock data stays isolated from the live path.',
-            health: await loadJson('http://localhost:3000/health')
-          }, null, 2);
-          apiStatus.textContent = 'LIVE';
-          apiStatus.classList.remove('degraded');
-          dbStatus.textContent = '—';
-          providerStatus.textContent = '—';
-          return;
-        }
-
+      $('start').addEventListener('click', async () => {
+        const draftOrder = $('draft-order').value.split('\n').map((line) => line.trim()).filter(Boolean);
         try {
-          const backtestPayload = {
-            picks: [
-              { managerId: 'm1', playerId: 'p1', position: 'RB', overallPick: 1 },
-              { managerId: 'm2', playerId: 'p2', position: 'WR', overallPick: 2 },
-              { managerId: 'm3', playerId: 'p3', position: 'QB', overallPick: 3 },
-              { managerId: 'm4', playerId: 'p4', position: 'TE', overallPick: 4 },
-              { managerId: 'm5', playerId: 'p5', position: 'RB', overallPick: 5 }
-            ]
-          };
-
-          const heuristicPayload = {
-            candidates: [
-              {
-                playerId: 'p1',
-                baseRank: 4,
-                signals: {
-                  contractYear: 0.5,
-                  targetShareVolatility: 0.1,
-                  olineUpgrade: 0.1,
-                  rzRegression: 0.1,
-                  gameScriptLeverage: 0.1
-                }
-              },
-              {
-                playerId: 'p2',
-                baseRank: 7,
-                signals: {
-                  contractYear: 0.2,
-                  targetShareVolatility: 0.4,
-                  olineUpgrade: 0.2,
-                  rzRegression: 0.1,
-                  gameScriptLeverage: 0.1
-                }
-              }
-            ]
-          };
-
-          const rosterPayload = {
-            strategyProfile: 'HERO_RB',
-            starters: { RB: 2, WR: 2 },
-            draftedPlayers: [{ playerId: 'rb-a', position: 'RB' }],
-            candidates: [
-              { playerId: 'wr-1', position: 'WR', compositeScore: 1 },
-              { playerId: 'rb-b', position: 'RB', compositeScore: 4 }
-            ]
-          };
-
-          const [backtestResponse, heuristicResponse, rosterResponse] = await Promise.all([
-            fetch('http://localhost:3000/predictions/backtest', {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify(backtestPayload)
+          const next = await api('/draft/board', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              leagueId: $('league').value,
+              season: Number($('season').value),
+              rounds: Number($('rounds').value),
+              draftSlot: Number($('slot').value),
+              teamCount: draftOrder.length,
+              draftOrder,
             }),
-            fetch('http://localhost:3000/heuristics/score', {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify(heuristicPayload)
-            }),
-            fetch('http://localhost:3000/roster/recommendations', {
-              method: 'POST',
-              headers: { 'content-type': 'application/json' },
-              body: JSON.stringify(rosterPayload)
-            })
-          ]);
-
-          if (!backtestResponse.ok || !heuristicResponse.ok || !rosterResponse.ok) {
-            throw new Error('One of the practice draft endpoints failed.');
-          }
-
-          const [backtestData, heuristicData, rosterData] = await Promise.all([
-            backtestResponse.json(),
-            heuristicResponse.json(),
-            rosterResponse.json()
-          ]);
-
-          output.textContent = JSON.stringify({
-            mode: 'practice',
-            note: 'Practice mock draft data is being used. This does not affect the live draft path.',
-            backtest: backtestData,
-            heuristicScoring: heuristicData,
-            rosterRecommendations: rosterData
-          }, null, 2);
-          apiStatus.textContent = 'PRACTICE';
-          apiStatus.classList.remove('degraded');
-          dbStatus.textContent = '—';
-          providerStatus.textContent = '—';
+          });
+          state = next;
+          $('setup').style.display = 'none';
+          $('board').style.display = 'block';
+          render();
+          $('pick-input').focus();
         } catch (error) {
-          output.textContent = 'Error fetching practice draft data: ' + error.message;
-        }
-      }
-
-      document.getElementById('load-health').addEventListener('click', loadHealth);
-      document.getElementById('load-backtest').addEventListener('click', loadBacktest);
-      draftMode.addEventListener('change', () => {
-        if (draftMode.value === 'live') {
-          apiStatus.textContent = 'LIVE';
-        } else {
-          apiStatus.textContent = 'PRACTICE';
+          $('setup-err').textContent = error.message;
         }
       });
-      loadHealth();
+
+      /* ---------------- pick entry ---------------- */
+
+      $('pick-input').addEventListener('input', (event) => {
+        clearTimeout(searchTimer);
+        const query = event.target.value.trim();
+        if (query.length < 2) return;
+        searchTimer = setTimeout(async () => {
+          try {
+            const data = await api(`/draft/players?q=${encodeURIComponent(query)}`);
+            $('player-list').innerHTML = data.players
+              .map((player) => `<option value="${escapeHtml(player.fullName)}">${player.position} ${player.team} · ADP ${player.adp}</option>`)
+              .join('');
+          } catch {
+            /* autocomplete is best-effort */
+          }
+        }, 120);
+      });
+
+      $('pick-input').addEventListener('keydown', async (event) => {
+        if (event.key !== 'Enter') return;
+        const query = event.target.value.trim();
+        if (!query) return;
+        await submitPick(query);
+      });
+
+      async function submitPick(query) {
+        try {
+          const next = await api('/draft/board/pick', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ query }),
+          });
+          state = next.state;
+          $('pick-input').value = '';
+          $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName}`;
+          render();
+        } catch (error) {
+          const candidates = error.body && error.body.candidates;
+          if (candidates && candidates.length) {
+            $('entry-msg').innerHTML = 'Which one? ' + candidates
+              .slice(0, 4)
+              .map((c) => `<button style="padding:2px 8px;font-size:12px" data-key="${c.matchKey}">${escapeHtml(c.fullName)} (${c.position})</button>`)
+              .join(' ');
+            for (const button of $('entry-msg').querySelectorAll('button')) {
+              button.addEventListener('click', async () => {
+                const next = await api('/draft/board/pick', {
+                  method: 'POST',
+                  headers: { 'content-type': 'application/json' },
+                  body: JSON.stringify({ matchKey: button.dataset.key }),
+                });
+                state = next.state;
+                $('pick-input').value = '';
+                $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName}`;
+                render();
+                $('pick-input').focus();
+              });
+            }
+          } else {
+            // Never let an unmatched name stall the board — every pick after it
+            // would land on the wrong team.
+            $('entry-msg').innerHTML = `Not in the pool. <button style="padding:2px 8px;font-size:12px" id="force-offpool">Record "${escapeHtml(query)}" anyway</button>`;
+            $('force-offpool').addEventListener('click', async () => {
+              const next = await api('/draft/board/pick', {
+                method: 'POST',
+                headers: { 'content-type': 'application/json' },
+                body: JSON.stringify({ query, offPool: true }),
+              });
+              state = next.state;
+              $('pick-input').value = '';
+              $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName} (off pool)`;
+              render();
+              $('pick-input').focus();
+            });
+          }
+        }
+      }
+
+      $('undo').addEventListener('click', async () => {
+        const next = await api('/draft/board/undo', { method: 'POST' });
+        state = next.state;
+        $('entry-msg').textContent = next.undone ? `Undid ${next.undone.fullName}` : 'Nothing to undo';
+        render();
+        $('pick-input').focus();
+      });
+
+      /* ---------------- resync ---------------- */
+
+      $('resync-open').addEventListener('click', () => $('resync-dialog').showModal());
+      $('resync-cancel').addEventListener('click', () => $('resync-dialog').close());
+      $('resync-apply').addEventListener('click', async () => {
+        try {
+          const next = await api('/draft/board/resync', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ text: $('resync-text').value }),
+          });
+          state = next.state;
+          $('resync-dialog').close();
+          $('entry-msg').textContent = `Rebuilt from ${next.applied} picks`
+            + (next.unresolved.length ? `, ${next.unresolved.length} unmatched` : '');
+          render();
+          $('pick-input').focus();
+        } catch (error) {
+          $('resync-err').textContent = error.message;
+        }
+      });
+
+      $('restart').addEventListener('click', () => {
+        $('board').style.display = 'none';
+        $('setup').style.display = 'block';
+      });
+
+      /* ---------------- render ---------------- */
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, (character) => ({
+          '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+        })[character]);
+      }
+
+      const VERDICT_LABEL = {
+        SAFE: 'Safe',
+        CAN_WAIT: 'Can wait',
+        RISKY: 'Risky',
+        GONE_BY_YOUR_TURN: 'Take now',
+      };
+
+      function render() {
+        if (!state) return;
+        const clock = state.onTheClock;
+
+        $('topbar').innerHTML = [
+          `<div class="stat"><span class="label">Pick</span><b>${clock ? clock.overallPick : '—'}</b></div>`,
+          `<div class="stat"><span class="label">Round</span><b>${clock ? clock.round : '—'}</b></div>`,
+          `<div class="stat wide ${clock && clock.isYou ? 'you' : ''}"><span class="label">On the clock</span><b>${clock ? escapeHtml(clock.teamName) : 'Draft complete'}</b></div>`,
+          `<div class="stat ${state.picksUntilNext === 0 ? 'alert' : ''}"><span class="label">Your next pick</span><b>${state.nextPick ?? '—'}</b></div>`,
+          `<div class="stat ${state.picksUntilNext === 0 ? 'alert' : ''}"><span class="label">Picks away</span><b>${state.picksUntilNext}</b></div>`,
+          `<div class="stat"><span class="label">Then pick</span><b>${state.followingPick ?? '—'}</b></div>`,
+          `<div class="stat"><span class="label">Gap</span><b>${state.picksBetweenTurns}</b></div>`,
+        ].join('');
+
+        $('discipline').innerHTML = state.discipline
+          .map((warning) => `<div class="warn">⚠ ${escapeHtml(warning.message)}</div>`)
+          .join('');
+
+        const players = state.survival.players
+          .slice()
+          .sort((a, b) => a.adp - b.adp)
+          .slice(0, 40);
+
+        $('players').innerHTML = players.map((player) => {
+          const percent = Math.round(player.survivalProbability * 100);
+          const threat = player.topThreat
+            ? `${escapeHtml(player.topThreat.teamName)} <span class="pmeta">${Math.round(player.topThreat.probability * 100)}%</span>`
+            : '<span class="pmeta">—</span>';
+          const injury = player.injuryStatus ? ` <span class="pmeta">${escapeHtml(player.injuryStatus)}</span>` : '';
+          return `<tr class="${player.verdict === 'GONE_BY_YOUR_TURN' ? 'take' : ''}">
+            <td><span class="pos">${player.position}</span></td>
+            <td><span class="pname">${escapeHtml(player.fullName)}</span> <span class="pmeta">${player.team}${player.byeWeek ? ' · bye ' + player.byeWeek : ''}</span>${injury}</td>
+            <td class="surv pmeta">${player.adp}</td>
+            <td class="surv v-${player.verdict}">${percent}%</td>
+            <td><span class="chip v-${player.verdict}">${VERDICT_LABEL[player.verdict]}</span></td>
+            <td>${threat}</td>
+          </tr>`;
+        }).join('');
+
+        $('threats').innerHTML = state.survival.threats.length
+          ? state.survival.threats.map((threat, index) => {
+            const odds = Object.entries(threat.positionOdds)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 3)
+              .map(([position, probability]) => `${position} ${Math.round(probability * 100)}%`)
+              .join(' · ');
+            return `<div class="threat ${index === 0 ? 'next' : ''}">
+              <div class="who"><span>${threat.overallPick}. ${escapeHtml(threat.teamName)}</span>
+                <span class="conf">${threat.seasons}y</span></div>
+              <div class="odds">${odds || '—'}</div>
+              ${threat.tells.map((tell) => `<div class="tell">${escapeHtml(tell)}</div>`).join('')}
+            </div>`;
+          }).join('')
+          : '<div class="threat-note">You are on the clock.</div>';
+
+        const roster = Object.entries(state.yourRoster).sort();
+        $('roster').innerHTML = roster.length
+          ? roster.map(([position, count]) => `<span>${position} <b>${count}</b></span>`).join('')
+          : '<span>No picks yet</span>';
+
+        $('your-picks').innerHTML = state.yourPicks
+          .map((pick) => `<li><span>${pick.overallPick}</span> ${escapeHtml(pick.fullName)} <span>${pick.position}</span></li>`)
+          .join('');
+
+        $('recent').innerHTML = state.recentPicks
+          .map((pick) => `<li><span>${pick.overallPick}</span> ${escapeHtml(pick.fullName)} <span>${escapeHtml(pick.teamName.slice(0, 14))}</span></li>`)
+          .join('');
+
+        $('footnote').textContent = `${state.availableCount} players available · ${state.survival.samples} simulations`
+          + (state.survival.note ? ` · ${state.survival.note}` : '');
+      }
+
+      loadTeams();
     </script>
   </body>
 </html>

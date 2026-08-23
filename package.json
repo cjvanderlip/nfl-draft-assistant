@@ -8,7 +8,12 @@
     "start": "npm run build && node dist/src/start.js",
     "test": "vitest run",
     "import:historical": "npm run build && node dist/scripts/import-historical-drafts.js",
-    "backtest:predictions": "npm run build && node dist/scripts/backtest-predictions.js"
+    "backtest:predictions": "npm run build && node dist/scripts/backtest-predictions.js",
+    "data:fetch": "npm run build && node dist/scripts/fetch-draft-data.js",
+    "profiles:build": "npm run build && node dist/scripts/build-manager-profiles.js",
+    "draft:prep": "npm run data:fetch && npm run profiles:build",
+    "replay": "npm run build && node dist/scripts/replay-draft.js",
+    "stress": "node scripts/stress-test.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
