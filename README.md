@@ -140,55 +140,46 @@ ADP moves on preseason injuries, so re-run `npm run draft:prep` the day before e
 
 ## Draft-day API
 
-- `POST /draft/board` — start a board (`leagueId`, `season`, `draftSlot`, `draftOrder`, `rounds`).
+This is the whole API. Everything the board needs was written to `data/` by
+`npm run draft:prep`; there is no database, no scheduler, and no external provider
+in the request path.
+
+- `POST /draft/board` — start a board (`leagueId`, `season`, `draftSlot`, `draftOrder`,
+  `rounds`). Returns `400` when a draft with picks is already running; send `force: true`
+  to replace it.
 - `GET /draft/board?samples=` — current state plus a fresh survival simulation.
-- `POST /draft/board/pick` — record a pick by `query` or `matchKey`. Returns `409` with
-  candidates when a query is ambiguous.
+  `samples` is clamped to 100–5000 and defaults to 600.
+- `POST /draft/board/pick` — record a pick by `query` or `matchKey`, or with
+  `offPool: true` and a `position` for a name outside the ADP pool. Returns `409`
+  with candidates when a query is ambiguous.
 - `POST /draft/board/undo` — undo the last pick.
 - `POST /draft/board/resync` — rebuild the board from pasted CBS draft-results `text`.
-- `GET /draft/players?q=` — autocomplete against the available pool.
-- `GET /draft/profiles?leagueId=` — generated manager profiles and league shape.
-- `GET /draft/data-status?season=` — cached ADP age, scoring format, and profile build time.
 - `GET /draft/board/saved` — summary of a resumable draft, if one was left behind.
 - `POST /draft/board/restore` — rebuild the live board from that snapshot.
 - `POST /draft/board/discard` — throw the snapshot away.
+- `GET /draft/players?q=` — autocomplete against the available pool.
+- `GET /draft/profiles?leagueId=` — manager profiles and league shape.
+- `GET /draft/data-status?season=` — cached ADP age, scoring format, profile build time,
+  and whether a board is live.
 
-`POST /draft/board` refuses with `400` when a draft with picks is already running; send
-`force: true` to replace it. Every response carries a `setup` audit (unrecognised team
-names, whether your slot holds your team), a `requirements` countdown, and `adp` freshness.
+Every board response carries a `setup` audit (unrecognised team names, whether your slot
+holds your team), a `requirements` countdown, and `adp` freshness.
 
-## Inherited endpoints
+## What was removed
 
-The repository also carries the earlier prototype's analytics, observability, and alerting
-routes. None of it runs during a draft; the draft-day path above is self-contained.
+The repository used to carry an earlier prototype's analytics, persistence, observability
+and alerting stack — roughly 8,000 lines behind 20-odd documented endpoints. It has been
+deleted rather than left inert, for two reasons.
 
-### Legacy endpoint reference
+Twelve of those endpoints were **already unreachable**: they were gated on an
+`options.repository` that `src/start.ts` never passed, so they returned `404` from the
+server anyone actually ran while the README documented them as working. Documentation that
+lies is worse than no documentation, particularly at 7pm on a draft night.
 
-- `GET /health` - dependency health snapshot.
-- `GET /leagues/:leagueId/snapshot` - persisted league/session/pick state.
-- `POST /predictions/backtest` - historical prediction backtesting metrics.
-- `GET /predictions/backtest?draftSessionId=&limit=&cursor=` - list persisted backtest snapshots (newest first).
-- `GET /predictions/backtest/latest?draftSessionId=` - retrieve the latest backtest snapshot.
-- `GET /predictions/backtest/:snapshotId` - retrieve a persisted prediction backtest snapshot.
-- `POST /heuristics/score` - configurable heuristic scoring for player candidates.
-- `GET /heuristics/score?draftSessionId=&limit=&cursor=` - list persisted heuristic snapshots (newest first).
-- `GET /heuristics/score/latest?draftSessionId=` - retrieve the latest heuristic scoring snapshot.
-- `GET /heuristics/score/:snapshotId` - retrieve a persisted heuristic scoring snapshot.
-- `POST /roster/recommendations` - strategy-aware roster constraints and recommendation ordering.
-- `GET /roster/recommendations?draftSessionId=&limit=&cursor=` - list persisted roster recommendation snapshots (newest first).
-- `GET /roster/recommendations/latest?draftSessionId=` - retrieve the latest roster recommendation snapshot.
-- `GET /roster/recommendations/:snapshotId` - retrieve a persisted roster recommendation snapshot.
-- `POST /snapshots/cleanup` - retention endpoint (`keepLatest`, optional `draftSessionId`) to delete stale snapshots.
-- `GET /metrics` - in-memory counters, timings, and recent structured events for runtime observability.
-- `GET /metrics/events?eventName=&level=&limit=&cursor=` - persisted observability event stream.
-- `GET /metrics/summary?windowSeconds=` - aggregated persisted event counts by level and event name, plus runtime metrics snapshot.
-- `GET /metrics/alerts?windowSeconds=` - threshold-based alert evaluation over observability summaries.
-- `POST /metrics/alerts/dispatch?windowSeconds=` - dispatches currently active alerts with cooldown-based duplicate suppression.
-  - Fanout supports webhook, Slack adapter, and email adapter channels with per-channel severity routing and templated message payloads.
-  - Includes governance metadata for silenced/acknowledged suppressions and escalation events.
-  - Supports idempotency via `idempotency-key` request header.
-  - Returns `502` when one or more external deliveries fail after retries.
-- `POST /metrics/alerts/silence` - silence one alert code for `durationSeconds` (`{ code, durationSeconds }`).
-- `POST /metrics/alerts/acknowledge` - acknowledge one alert code (`{ code, note? }`).
-- `GET /metrics/alerts/state` - current alert governance state (silences, acknowledgements, escalation counters).
-- `GET /ops/runbook-checks` - operational readiness checklist for persistence, retention, alert delivery channels, idempotency, and rate limits.
+The rest — CBS polling against a deprecated v3 API, SQLite snapshot persistence and
+retention, webhook/Slack/email alert fanout with governance and escalation, heuristic
+scoring for five signals nothing fed, exposure tracking dropped on evidence — described a
+product this is not. None of it ran during a draft. Deleting it also removed the project's
+only runtime dependency.
+
+What remains is the draft-day path and the scripts that feed it.

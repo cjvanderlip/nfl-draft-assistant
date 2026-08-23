@@ -1,5 +1,5 @@
 {
-  "name": "draft-sharks-companion",
+  "name": "war-room-wingman",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -8,21 +8,14 @@
     "start": "npm run build && node dist/src/start.js",
     "start:fast": "node dist/src/start.js",
     "test": "vitest run",
-    "import:historical": "npm run build && node dist/scripts/import-historical-drafts.js",
-    "backtest:predictions": "npm run build && node dist/scripts/backtest-predictions.js",
     "data:fetch": "npm run build && node dist/scripts/fetch-draft-data.js",
     "profiles:build": "npm run build && node dist/scripts/build-manager-profiles.js",
     "draft:prep": "npm run data:fetch && npm run profiles:build",
-    "replay": "npm run build && node dist/scripts/replay-draft.js",
-    "stress": "node scripts/stress-test.mjs"
+    "replay": "npm run build && node dist/scripts/replay-draft.js"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "@types/sql.js": "^1.4.9",
     "typescript": "^5.7.2",
     "vitest": "^3.2.6"
-  },
-  "dependencies": {
-    "sql.js": "^1.13.0"
   }
 }
