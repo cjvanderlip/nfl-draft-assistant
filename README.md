@@ -17,7 +17,9 @@ npm start              # http://localhost:3005
 ```
 
 `draft:prep` writes everything to `data/` so nothing hits the network mid-draft. Run it the
-day before, not on the clock.
+day before, not on the clock. The seasons it downloads are read from the filenames in
+`historical-draft-data/`, so dropping a new export in there is enough to have the next
+`draft:prep` pick it up.
 
 In the browser: choose the league, set the season and your draft slot, paste the draft order
 one team per line in slot order, and hit **Start draft**. Then type each pick as it happens
@@ -75,9 +77,9 @@ pool runs at about 99%. Re-run it if the league or scoring format changes.
 
 ## League settings
 
-`src/config/league.ts` holds what the CBS settings page says, so the numbers live in one
+`src/config/league.ts` holds what the CBS settings pages say, so the numbers live in one
 place instead of being spread as defaults: half-PPR scoring, 12 teams, 13 rounds, and an
-active minimum of one at every position.
+active minimum of one at every position. Both leagues run the same settings.
 
 That last one matters more than it looks. The league scores an illegal roster as **zero
 points for the week**, so finishing the draft without a kicker is not a soft mistake. The
@@ -100,7 +102,7 @@ manager taking a fourth quarterback in the twelfth round.
 | `SEASON` | current year | Season to download |
 | `PORT` | `3005` | API and UI port |
 
-**The league is half-PPR** (`Recpt .5 points`, confirmed from the A-League settings page),
+**Both leagues are half-PPR** (`Recpt .5 points`, confirmed from the CBS settings pages),
 not the full PPR everything defaulted to before. That default is now wrong-market and has
 been changed: see `src/config/league.ts`. `ADP_FORMAT` still overrides it. The format in use
 is shown on the setup screen and in the board footer.

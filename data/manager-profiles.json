@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T16:28:27.661Z",
+  "generatedAt": "2026-08-23T16:36:00.442Z",
   "leagues": {
     "B-LEAGUE": {
       "leagueId": "B-LEAGUE",
@@ -111,7 +111,7 @@
           "DST": 0.2333
         }
       },
-      "meanReach": -0.92
+      "meanReach": -0.51
     },
     "A-LEAGUE": {
       "leagueId": "A-LEAGUE",
@@ -2310,33 +2310,33 @@
       ],
       "crossLeague": false,
       "pickCount": 39,
-      "adpMatchedCount": 20,
-      "confidence": 0.63,
-      "overallReach": 5.44,
+      "adpMatchedCount": 33,
+      "confidence": 0.73,
+      "overallReach": 7.13,
       "reachByPosition": {
         "QB": {
-          "mean": 4.68,
-          "sampleSize": 3
+          "mean": 15.94,
+          "sampleSize": 4
         },
         "RB": {
-          "mean": 3.8,
-          "sampleSize": 5
+          "mean": -1.51,
+          "sampleSize": 8
         },
         "WR": {
-          "mean": 2.71,
-          "sampleSize": 6
+          "mean": 2.55,
+          "sampleSize": 11
         },
         "TE": {
-          "mean": 20.85,
-          "sampleSize": 3
+          "mean": 21.18,
+          "sampleSize": 5
         },
         "K": {
-          "mean": 14.27,
-          "sampleSize": 2
+          "mean": 22.69,
+          "sampleSize": 3
         },
         "DST": {
-          "mean": 14.47,
-          "sampleSize": 1
+          "mean": 16.74,
+          "sampleSize": 2
         }
       },
       "positionShare": {
@@ -2453,10 +2453,16 @@
       },
       "tells": [
         {
-          "label": "Takes TE early, 20.85 picks ahead of ADP",
+          "label": "Takes TE early, 21.18 picks ahead of ADP",
           "position": "TE",
-          "value": 20.85,
-          "sampleSize": 3
+          "value": 21.18,
+          "sampleSize": 5
+        },
+        {
+          "label": "Takes QB early, 15.94 picks ahead of ADP",
+          "position": "QB",
+          "value": 15.94,
+          "sampleSize": 4
         },
         {
           "label": "First QB around round 6.33",
@@ -2483,29 +2489,33 @@
       ],
       "crossLeague": true,
       "pickCount": 65,
-      "adpMatchedCount": 31,
-      "confidence": 0.72,
-      "overallReach": 4.41,
+      "adpMatchedCount": 44,
+      "confidence": 0.79,
+      "overallReach": 4.98,
       "reachByPosition": {
         "QB": {
-          "mean": 11.27,
-          "sampleSize": 5
+          "mean": 10.07,
+          "sampleSize": 7
         },
         "RB": {
-          "mean": 6.39,
-          "sampleSize": 12
+          "mean": 3.21,
+          "sampleSize": 16
         },
         "WR": {
-          "mean": 5.2,
-          "sampleSize": 12
+          "mean": 6.94,
+          "sampleSize": 16
         },
         "TE": {
-          "mean": 9.85,
+          "mean": 10.45,
+          "sampleSize": 2
+        },
+        "K": {
+          "mean": 10.46,
           "sampleSize": 1
         },
         "DST": {
-          "mean": 4.47,
-          "sampleSize": 1
+          "mean": 7.87,
+          "sampleSize": 2
         }
       },
       "positionShare": {
@@ -2623,16 +2633,16 @@
       },
       "tells": [
         {
-          "label": "Takes QB early, 11.27 picks ahead of ADP",
+          "label": "Takes QB early, 10.07 picks ahead of ADP",
           "position": "QB",
-          "value": 11.27,
-          "sampleSize": 5
+          "value": 10.07,
+          "sampleSize": 7
         },
         {
-          "label": "Takes RB early, 6.39 picks ahead of ADP",
-          "position": "RB",
-          "value": 6.39,
-          "sampleSize": 12
+          "label": "Takes WR early, 6.94 picks ahead of ADP",
+          "position": "WR",
+          "value": 6.94,
+          "sampleSize": 16
         },
         {
           "label": "First QB around round 3",
@@ -2656,26 +2666,26 @@
       "pickCount": 13,
       "adpMatchedCount": 11,
       "confidence": 0.48,
-      "overallReach": 1.87,
+      "overallReach": 2.15,
       "reachByPosition": {
         "QB": {
-          "mean": -0.68,
+          "mean": -0.46,
           "sampleSize": 1
         },
         "RB": {
-          "mean": 15.87,
+          "mean": 16.03,
           "sampleSize": 3
         },
         "WR": {
-          "mean": -0.74,
+          "mean": -0.6,
           "sampleSize": 4
         },
         "TE": {
-          "mean": 1.68,
+          "mean": 1.87,
           "sampleSize": 2
         },
         "DST": {
-          "mean": 3.18,
+          "mean": 3.4,
           "sampleSize": 1
         }
       },
@@ -2793,9 +2803,9 @@
       },
       "tells": [
         {
-          "label": "Takes RB early, 15.87 picks ahead of ADP",
+          "label": "Takes RB early, 16.03 picks ahead of ADP",
           "position": "RB",
-          "value": 15.87,
+          "value": 16.03,
           "sampleSize": 3
         },
         {
@@ -2803,6 +2813,339 @@
           "position": "QB",
           "value": 3,
           "sampleSize": 1
+        }
+      ]
+    },
+    {
+      "ownerId": "owner-k9-lb",
+      "displayName": "K9-LB",
+      "leagueId": "B-LEAGUE",
+      "teamNames": [
+        "K9-LB"
+      ],
+      "seasons": [
+        2021
+      ],
+      "crossLeague": false,
+      "pickCount": 13,
+      "adpMatchedCount": 12,
+      "confidence": 0.5,
+      "overallReach": 1.84,
+      "reachByPosition": {
+        "QB": {
+          "mean": 5.33,
+          "sampleSize": 2
+        },
+        "RB": {
+          "mean": 0.55,
+          "sampleSize": 3
+        },
+        "WR": {
+          "mean": 1.61,
+          "sampleSize": 4
+        },
+        "TE": {
+          "mean": 8.98,
+          "sampleSize": 1
+        },
+        "K": {
+          "mean": 2.72,
+          "sampleSize": 1
+        },
+        "DST": {
+          "mean": 3.62,
+          "sampleSize": 1
+        }
+      },
+      "positionShare": {
+        "QB": 0.1538,
+        "RB": 0.2308,
+        "WR": 0.3077,
+        "TE": 0.1538,
+        "K": 0.0769,
+        "DST": 0.0769
+      },
+      "positionByRound": {
+        "1": {
+          "RB": 0.75,
+          "WR": 0.225,
+          "TE": 0.025
+        },
+        "2": {
+          "QB": 0.0625,
+          "RB": 0.5625,
+          "WR": 0.3125,
+          "TE": 0.0625
+        },
+        "3": {
+          "QB": 0.0875,
+          "RB": 0.2375,
+          "WR": 0.6,
+          "TE": 0.075
+        },
+        "4": {
+          "QB": 0.15,
+          "RB": 0.2375,
+          "WR": 0.5625,
+          "TE": 0.05
+        },
+        "5": {
+          "QB": 0.35,
+          "RB": 0.2125,
+          "WR": 0.325,
+          "TE": 0.1125
+        },
+        "6": {
+          "QB": 0.1,
+          "RB": 0.225,
+          "WR": 0.25,
+          "TE": 0.425
+        },
+        "7": {
+          "QB": 0.075,
+          "RB": 0.25,
+          "WR": 0.5625,
+          "TE": 0.1,
+          "K": 0.0125
+        },
+        "8": {
+          "QB": 0.1375,
+          "RB": 0.4875,
+          "WR": 0.3125,
+          "TE": 0.05,
+          "DST": 0.0125
+        },
+        "9": {
+          "QB": 0.0875,
+          "RB": 0.1625,
+          "WR": 0.3125,
+          "TE": 0.3375,
+          "K": 0.025,
+          "DST": 0.075
+        },
+        "10": {
+          "QB": 0.1,
+          "RB": 0.1375,
+          "WR": 0.525,
+          "TE": 0.05,
+          "K": 0.1,
+          "DST": 0.0875
+        },
+        "11": {
+          "QB": 0.3875,
+          "RB": 0.1,
+          "WR": 0.1125,
+          "TE": 0.0875,
+          "K": 0.1125,
+          "DST": 0.2
+        },
+        "12": {
+          "QB": 0.1,
+          "RB": 0.1,
+          "WR": 0.075,
+          "TE": 0.0875,
+          "K": 0.425,
+          "DST": 0.2125
+        },
+        "13": {
+          "QB": 0.05,
+          "RB": 0.1125,
+          "WR": 0.0625,
+          "TE": 0.025,
+          "K": 0.325,
+          "DST": 0.425
+        }
+      },
+      "firstPositionRound": {
+        "QB": 5,
+        "RB": 1,
+        "WR": 3,
+        "TE": 6,
+        "K": 12,
+        "DST": 13
+      },
+      "earlyRoundShape": {
+        "RB": 2,
+        "WR": 1
+      },
+      "tells": [
+        {
+          "label": "First QB around round 5",
+          "position": "QB",
+          "value": 5,
+          "sampleSize": 1
+        }
+      ]
+    },
+    {
+      "ownerId": "owner-muscle-beach",
+      "displayName": "Muscle Beach",
+      "leagueId": "B-LEAGUE",
+      "teamNames": [
+        "Muscle Beach"
+      ],
+      "seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "crossLeague": false,
+      "pickCount": 65,
+      "adpMatchedCount": 58,
+      "confidence": 0.83,
+      "overallReach": 1.75,
+      "reachByPosition": {
+        "QB": {
+          "mean": -3.02,
+          "sampleSize": 9
+        },
+        "RB": {
+          "mean": 1.1,
+          "sampleSize": 15
+        },
+        "WR": {
+          "mean": -1.1,
+          "sampleSize": 20
+        },
+        "TE": {
+          "mean": 9.73,
+          "sampleSize": 8
+        },
+        "K": {
+          "mean": 10.17,
+          "sampleSize": 3
+        },
+        "DST": {
+          "mean": 8.04,
+          "sampleSize": 3
+        }
+      },
+      "positionShare": {
+        "QB": 0.1538,
+        "RB": 0.2615,
+        "WR": 0.3077,
+        "TE": 0.1231,
+        "K": 0.0769,
+        "DST": 0.0769
+      },
+      "positionByRound": {
+        "1": {
+          "RB": 0.75,
+          "WR": 0.2375,
+          "TE": 0.0125
+        },
+        "2": {
+          "QB": 0.0312,
+          "RB": 0.5313,
+          "WR": 0.2813,
+          "TE": 0.1562
+        },
+        "3": {
+          "QB": 0.0438,
+          "RB": 0.2438,
+          "WR": 0.675,
+          "TE": 0.0375
+        },
+        "4": {
+          "QB": 0.2,
+          "RB": 0.1188,
+          "WR": 0.6563,
+          "TE": 0.025
+        },
+        "5": {
+          "QB": 0.05,
+          "RB": 0.1062,
+          "WR": 0.6625,
+          "TE": 0.1812
+        },
+        "6": {
+          "QB": 0.425,
+          "RB": 0.1125,
+          "WR": 0.25,
+          "TE": 0.2125
+        },
+        "7": {
+          "QB": 0.0375,
+          "RB": 0.5,
+          "WR": 0.4063,
+          "TE": 0.05,
+          "K": 0.0063
+        },
+        "8": {
+          "QB": 0.1937,
+          "RB": 0.3688,
+          "WR": 0.2813,
+          "TE": 0.15,
+          "DST": 0.0063
+        },
+        "9": {
+          "QB": 0.0438,
+          "RB": 0.0813,
+          "WR": 0.4063,
+          "TE": 0.2938,
+          "K": 0.0125,
+          "DST": 0.1625
+        },
+        "10": {
+          "QB": 0.425,
+          "RB": 0.1937,
+          "WR": 0.1375,
+          "TE": 0.025,
+          "K": 0.175,
+          "DST": 0.0438
+        },
+        "11": {
+          "QB": 0.3187,
+          "RB": 0.175,
+          "WR": 0.0562,
+          "TE": 0.1688,
+          "K": 0.1812,
+          "DST": 0.1
+        },
+        "12": {
+          "QB": 0.05,
+          "RB": 0.05,
+          "WR": 0.0375,
+          "TE": 0.1688,
+          "K": 0.2125,
+          "DST": 0.4812
+        },
+        "13": {
+          "QB": 0.025,
+          "RB": 0.3063,
+          "WR": 0.0312,
+          "TE": 0.0125,
+          "K": 0.4125,
+          "DST": 0.2125
+        }
+      },
+      "firstPositionRound": {
+        "QB": 6,
+        "RB": 1.2,
+        "WR": 2.4,
+        "TE": 6,
+        "K": 11.8,
+        "DST": 11.6
+      },
+      "earlyRoundShape": {
+        "RB": 8,
+        "TE": 1,
+        "WR": 6
+      },
+      "tells": [
+        {
+          "label": "Takes TE early, 9.73 picks ahead of ADP",
+          "position": "TE",
+          "value": 9.73,
+          "sampleSize": 8
+        },
+        {
+          "label": "First QB around round 6",
+          "position": "QB",
+          "value": 6,
+          "sampleSize": 5
         }
       ]
     },
@@ -2820,30 +3163,30 @@
       "pickCount": 13,
       "adpMatchedCount": 12,
       "confidence": 0.5,
-      "overallReach": 1.42,
+      "overallReach": 1.7,
       "reachByPosition": {
         "QB": {
-          "mean": 1.88,
+          "mean": 2.1,
           "sampleSize": 1
         },
         "RB": {
-          "mean": 1.69,
+          "mean": 1.83,
           "sampleSize": 4
         },
         "WR": {
-          "mean": 2.51,
+          "mean": 2.65,
           "sampleSize": 4
         },
         "TE": {
-          "mean": 3.9,
+          "mean": 4.12,
           "sampleSize": 1
         },
         "K": {
-          "mean": 5.74,
+          "mean": 5.96,
           "sampleSize": 1
         },
         "DST": {
-          "mean": 3.74,
+          "mean": 3.96,
           "sampleSize": 1
         }
       },
@@ -2969,349 +3312,6 @@
       ]
     },
     {
-      "ownerId": "owner-colorado-caribou",
-      "displayName": "Colorado Caribou",
-      "leagueId": "B-LEAGUE",
-      "teamNames": [
-        "Colorado Caribou"
-      ],
-      "seasons": [
-        2021,
-        2022,
-        2023,
-        2024,
-        2025
-      ],
-      "crossLeague": false,
-      "pickCount": 65,
-      "adpMatchedCount": 43,
-      "confidence": 0.78,
-      "overallReach": 1.01,
-      "reachByPosition": {
-        "QB": {
-          "mean": -2.56,
-          "sampleSize": 7
-        },
-        "RB": {
-          "mean": 1.87,
-          "sampleSize": 15
-        },
-        "WR": {
-          "mean": -0.07,
-          "sampleSize": 13
-        },
-        "TE": {
-          "mean": 7.58,
-          "sampleSize": 3
-        },
-        "K": {
-          "mean": 8.63,
-          "sampleSize": 4
-        },
-        "DST": {
-          "mean": -2.43,
-          "sampleSize": 1
-        }
-      },
-      "positionShare": {
-        "QB": 0.1385,
-        "RB": 0.3231,
-        "WR": 0.2923,
-        "TE": 0.0923,
-        "K": 0.0769,
-        "DST": 0.0769
-      },
-      "positionByRound": {
-        "1": {
-          "RB": 0.75,
-          "WR": 0.2375,
-          "TE": 0.0125
-        },
-        "2": {
-          "QB": 0.0312,
-          "RB": 0.2813,
-          "WR": 0.6563,
-          "TE": 0.0312
-        },
-        "3": {
-          "QB": 0.0438,
-          "RB": 0.6188,
-          "WR": 0.3,
-          "TE": 0.0375
-        },
-        "4": {
-          "QB": 0.075,
-          "RB": 0.2438,
-          "WR": 0.6563,
-          "TE": 0.025
-        },
-        "5": {
-          "QB": 0.175,
-          "RB": 0.2312,
-          "WR": 0.2875,
-          "TE": 0.3063
-        },
-        "6": {
-          "QB": 0.175,
-          "RB": 0.2375,
-          "WR": 0.25,
-          "TE": 0.3375
-        },
-        "7": {
-          "QB": 0.0375,
-          "RB": 0.625,
-          "WR": 0.2813,
-          "TE": 0.05,
-          "K": 0.0063
-        },
-        "8": {
-          "QB": 0.4437,
-          "RB": 0.1188,
-          "WR": 0.4063,
-          "TE": 0.025,
-          "DST": 0.0063
-        },
-        "9": {
-          "QB": 0.0438,
-          "RB": 0.4563,
-          "WR": 0.2813,
-          "TE": 0.1688,
-          "K": 0.0125,
-          "DST": 0.0375
-        },
-        "10": {
-          "QB": 0.05,
-          "RB": 0.0687,
-          "WR": 0.5125,
-          "TE": 0.025,
-          "K": 0.3,
-          "DST": 0.0438
-        },
-        "11": {
-          "QB": 0.4437,
-          "RB": 0.175,
-          "WR": 0.0562,
-          "TE": 0.0438,
-          "K": 0.1812,
-          "DST": 0.1
-        },
-        "12": {
-          "QB": 0.175,
-          "RB": 0.175,
-          "WR": 0.0375,
-          "TE": 0.1688,
-          "K": 0.3375,
-          "DST": 0.1062
-        },
-        "13": {
-          "QB": 0.025,
-          "RB": 0.0562,
-          "WR": 0.0312,
-          "TE": 0.0125,
-          "K": 0.1625,
-          "DST": 0.7125
-        }
-      },
-      "firstPositionRound": {
-        "QB": 7,
-        "RB": 1.4,
-        "WR": 2,
-        "TE": 6.2,
-        "K": 11,
-        "DST": 13
-      },
-      "earlyRoundShape": {
-        "RB": 9,
-        "WR": 6
-      },
-      "tells": [
-        {
-          "label": "Takes TE early, 7.58 picks ahead of ADP",
-          "position": "TE",
-          "value": 7.58,
-          "sampleSize": 3
-        },
-        {
-          "label": "First QB around round 7",
-          "position": "QB",
-          "value": 7,
-          "sampleSize": 5
-        }
-      ]
-    },
-    {
-      "ownerId": "owner-muscle-beach",
-      "displayName": "Muscle Beach",
-      "leagueId": "B-LEAGUE",
-      "teamNames": [
-        "Muscle Beach"
-      ],
-      "seasons": [
-        2021,
-        2022,
-        2023,
-        2024,
-        2025
-      ],
-      "crossLeague": false,
-      "pickCount": 65,
-      "adpMatchedCount": 46,
-      "confidence": 0.79,
-      "overallReach": 0.64,
-      "reachByPosition": {
-        "QB": {
-          "mean": -3.99,
-          "sampleSize": 7
-        },
-        "RB": {
-          "mean": 0.15,
-          "sampleSize": 12
-        },
-        "WR": {
-          "mean": -1.88,
-          "sampleSize": 16
-        },
-        "TE": {
-          "mean": 7.98,
-          "sampleSize": 6
-        },
-        "K": {
-          "mean": 5.21,
-          "sampleSize": 2
-        },
-        "DST": {
-          "mean": 7.41,
-          "sampleSize": 3
-        }
-      },
-      "positionShare": {
-        "QB": 0.1538,
-        "RB": 0.2615,
-        "WR": 0.3077,
-        "TE": 0.1231,
-        "K": 0.0769,
-        "DST": 0.0769
-      },
-      "positionByRound": {
-        "1": {
-          "RB": 0.75,
-          "WR": 0.2375,
-          "TE": 0.0125
-        },
-        "2": {
-          "QB": 0.0312,
-          "RB": 0.5313,
-          "WR": 0.2813,
-          "TE": 0.1562
-        },
-        "3": {
-          "QB": 0.0438,
-          "RB": 0.2438,
-          "WR": 0.675,
-          "TE": 0.0375
-        },
-        "4": {
-          "QB": 0.2,
-          "RB": 0.1188,
-          "WR": 0.6563,
-          "TE": 0.025
-        },
-        "5": {
-          "QB": 0.05,
-          "RB": 0.1062,
-          "WR": 0.6625,
-          "TE": 0.1812
-        },
-        "6": {
-          "QB": 0.425,
-          "RB": 0.1125,
-          "WR": 0.25,
-          "TE": 0.2125
-        },
-        "7": {
-          "QB": 0.0375,
-          "RB": 0.5,
-          "WR": 0.4063,
-          "TE": 0.05,
-          "K": 0.0063
-        },
-        "8": {
-          "QB": 0.1937,
-          "RB": 0.3688,
-          "WR": 0.2813,
-          "TE": 0.15,
-          "DST": 0.0063
-        },
-        "9": {
-          "QB": 0.0438,
-          "RB": 0.0813,
-          "WR": 0.4063,
-          "TE": 0.2938,
-          "K": 0.0125,
-          "DST": 0.1625
-        },
-        "10": {
-          "QB": 0.425,
-          "RB": 0.1937,
-          "WR": 0.1375,
-          "TE": 0.025,
-          "K": 0.175,
-          "DST": 0.0438
-        },
-        "11": {
-          "QB": 0.3187,
-          "RB": 0.175,
-          "WR": 0.0562,
-          "TE": 0.1688,
-          "K": 0.1812,
-          "DST": 0.1
-        },
-        "12": {
-          "QB": 0.05,
-          "RB": 0.05,
-          "WR": 0.0375,
-          "TE": 0.1688,
-          "K": 0.2125,
-          "DST": 0.4812
-        },
-        "13": {
-          "QB": 0.025,
-          "RB": 0.3063,
-          "WR": 0.0312,
-          "TE": 0.0125,
-          "K": 0.4125,
-          "DST": 0.2125
-        }
-      },
-      "firstPositionRound": {
-        "QB": 6,
-        "RB": 1.2,
-        "WR": 2.4,
-        "TE": 6,
-        "K": 11.8,
-        "DST": 11.6
-      },
-      "earlyRoundShape": {
-        "RB": 8,
-        "TE": 1,
-        "WR": 6
-      },
-      "tells": [
-        {
-          "label": "Takes TE early, 7.98 picks ahead of ADP",
-          "position": "TE",
-          "value": 7.98,
-          "sampleSize": 6
-        },
-        {
-          "label": "First QB around round 6",
-          "position": "QB",
-          "value": 6,
-          "sampleSize": 5
-        }
-      ]
-    },
-    {
       "ownerId": "owner-santa-fe-southsiders",
       "displayName": "Santa Fe Southsiders",
       "leagueId": "B-LEAGUE",
@@ -3327,33 +3327,33 @@
       ],
       "crossLeague": false,
       "pickCount": 65,
-      "adpMatchedCount": 47,
-      "confidence": 0.8,
-      "overallReach": 0.27,
+      "adpMatchedCount": 60,
+      "confidence": 0.83,
+      "overallReach": 1.63,
       "reachByPosition": {
         "QB": {
-          "mean": -2.16,
-          "sampleSize": 6
+          "mean": 0.23,
+          "sampleSize": 8
         },
         "RB": {
-          "mean": 5.9,
-          "sampleSize": 15
+          "mean": 6.05,
+          "sampleSize": 19
         },
         "WR": {
-          "mean": -7,
-          "sampleSize": 16
+          "mean": -5.05,
+          "sampleSize": 20
         },
         "TE": {
-          "mean": 7.44,
-          "sampleSize": 5
+          "mean": 7.65,
+          "sampleSize": 6
         },
         "K": {
-          "mean": 0.68,
-          "sampleSize": 2
+          "mean": 5.3,
+          "sampleSize": 3
         },
         "DST": {
-          "mean": 3.9,
-          "sampleSize": 3
+          "mean": 6.99,
+          "sampleSize": 4
         }
       },
       "positionShare": {
@@ -3470,16 +3470,187 @@
       },
       "tells": [
         {
-          "label": "Takes TE early, 7.44 picks ahead of ADP",
+          "label": "Takes TE early, 7.65 picks ahead of ADP",
           "position": "TE",
-          "value": 7.44,
+          "value": 7.65,
+          "sampleSize": 6
+        },
+        {
+          "label": "First QB around round 7",
+          "position": "QB",
+          "value": 7,
           "sampleSize": 5
         },
         {
-          "label": "Waits on WR, 7 picks behind ADP",
-          "position": "WR",
-          "value": -7,
+          "label": "Takes RB early, 6.05 picks ahead of ADP",
+          "position": "RB",
+          "value": 6.05,
+          "sampleSize": 19
+        }
+      ]
+    },
+    {
+      "ownerId": "owner-colorado-caribou",
+      "displayName": "Colorado Caribou",
+      "leagueId": "B-LEAGUE",
+      "teamNames": [
+        "Colorado Caribou"
+      ],
+      "seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "crossLeague": false,
+      "pickCount": 65,
+      "adpMatchedCount": 54,
+      "confidence": 0.82,
+      "overallReach": 1.12,
+      "reachByPosition": {
+        "QB": {
+          "mean": -2.69,
+          "sampleSize": 9
+        },
+        "RB": {
+          "mean": 0.46,
+          "sampleSize": 19
+        },
+        "WR": {
+          "mean": 0.36,
           "sampleSize": 16
+        },
+        "TE": {
+          "mean": 8.14,
+          "sampleSize": 4
+        },
+        "K": {
+          "mean": 10.23,
+          "sampleSize": 5
+        },
+        "DST": {
+          "mean": -2.34,
+          "sampleSize": 1
+        }
+      },
+      "positionShare": {
+        "QB": 0.1385,
+        "RB": 0.3231,
+        "WR": 0.2923,
+        "TE": 0.0923,
+        "K": 0.0769,
+        "DST": 0.0769
+      },
+      "positionByRound": {
+        "1": {
+          "RB": 0.75,
+          "WR": 0.2375,
+          "TE": 0.0125
+        },
+        "2": {
+          "QB": 0.0312,
+          "RB": 0.2813,
+          "WR": 0.6563,
+          "TE": 0.0312
+        },
+        "3": {
+          "QB": 0.0438,
+          "RB": 0.6188,
+          "WR": 0.3,
+          "TE": 0.0375
+        },
+        "4": {
+          "QB": 0.075,
+          "RB": 0.2438,
+          "WR": 0.6563,
+          "TE": 0.025
+        },
+        "5": {
+          "QB": 0.175,
+          "RB": 0.2312,
+          "WR": 0.2875,
+          "TE": 0.3063
+        },
+        "6": {
+          "QB": 0.175,
+          "RB": 0.2375,
+          "WR": 0.25,
+          "TE": 0.3375
+        },
+        "7": {
+          "QB": 0.0375,
+          "RB": 0.625,
+          "WR": 0.2813,
+          "TE": 0.05,
+          "K": 0.0063
+        },
+        "8": {
+          "QB": 0.4437,
+          "RB": 0.1188,
+          "WR": 0.4063,
+          "TE": 0.025,
+          "DST": 0.0063
+        },
+        "9": {
+          "QB": 0.0438,
+          "RB": 0.4563,
+          "WR": 0.2813,
+          "TE": 0.1688,
+          "K": 0.0125,
+          "DST": 0.0375
+        },
+        "10": {
+          "QB": 0.05,
+          "RB": 0.0687,
+          "WR": 0.5125,
+          "TE": 0.025,
+          "K": 0.3,
+          "DST": 0.0438
+        },
+        "11": {
+          "QB": 0.4437,
+          "RB": 0.175,
+          "WR": 0.0562,
+          "TE": 0.0438,
+          "K": 0.1812,
+          "DST": 0.1
+        },
+        "12": {
+          "QB": 0.175,
+          "RB": 0.175,
+          "WR": 0.0375,
+          "TE": 0.1688,
+          "K": 0.3375,
+          "DST": 0.1062
+        },
+        "13": {
+          "QB": 0.025,
+          "RB": 0.0562,
+          "WR": 0.0312,
+          "TE": 0.0125,
+          "K": 0.1625,
+          "DST": 0.7125
+        }
+      },
+      "firstPositionRound": {
+        "QB": 7,
+        "RB": 1.4,
+        "WR": 2,
+        "TE": 6.2,
+        "K": 11,
+        "DST": 13
+      },
+      "earlyRoundShape": {
+        "RB": 9,
+        "WR": 6
+      },
+      "tells": [
+        {
+          "label": "Takes TE early, 8.14 picks ahead of ADP",
+          "position": "TE",
+          "value": 8.14,
+          "sampleSize": 4
         },
         {
           "label": "First QB around round 7",
@@ -3504,30 +3675,30 @@
       "pickCount": 26,
       "adpMatchedCount": 25,
       "confidence": 0.68,
-      "overallReach": -0.65,
+      "overallReach": -0.45,
       "reachByPosition": {
         "QB": {
-          "mean": 3.18,
+          "mean": 3.32,
           "sampleSize": 2
         },
         "RB": {
-          "mean": -1.76,
+          "mean": -1.68,
           "sampleSize": 6
         },
         "WR": {
-          "mean": -3.96,
+          "mean": -3.91,
           "sampleSize": 11
         },
         "TE": {
-          "mean": 6.2,
+          "mean": 6.32,
           "sampleSize": 3
         },
         "K": {
-          "mean": -1.88,
+          "mean": -1.72,
           "sampleSize": 1
         },
         "DST": {
-          "mean": -0.22,
+          "mean": -0.08,
           "sampleSize": 2
         }
       },
@@ -3645,9 +3816,9 @@
       },
       "tells": [
         {
-          "label": "Takes TE early, 6.2 picks ahead of ADP",
+          "label": "Takes TE early, 6.32 picks ahead of ADP",
           "position": "TE",
-          "value": 6.2,
+          "value": 6.32,
           "sampleSize": 3
         },
         {
@@ -3655,278 +3826,6 @@
           "position": "QB",
           "value": 4,
           "sampleSize": 2
-        }
-      ]
-    },
-    {
-      "ownerId": "owner-k9-lb",
-      "displayName": "K9-LB",
-      "leagueId": "B-LEAGUE",
-      "teamNames": [
-        "K9-LB"
-      ],
-      "seasons": [
-        2021
-      ],
-      "crossLeague": false,
-      "pickCount": 13,
-      "adpMatchedCount": 0,
-      "confidence": 0,
-      "overallReach": -0.92,
-      "reachByPosition": {},
-      "positionShare": {
-        "QB": 0.1538,
-        "RB": 0.2308,
-        "WR": 0.3077,
-        "TE": 0.1538,
-        "K": 0.0769,
-        "DST": 0.0769
-      },
-      "positionByRound": {
-        "1": {
-          "RB": 0.75,
-          "WR": 0.225,
-          "TE": 0.025
-        },
-        "2": {
-          "QB": 0.0625,
-          "RB": 0.5625,
-          "WR": 0.3125,
-          "TE": 0.0625
-        },
-        "3": {
-          "QB": 0.0875,
-          "RB": 0.2375,
-          "WR": 0.6,
-          "TE": 0.075
-        },
-        "4": {
-          "QB": 0.15,
-          "RB": 0.2375,
-          "WR": 0.5625,
-          "TE": 0.05
-        },
-        "5": {
-          "QB": 0.35,
-          "RB": 0.2125,
-          "WR": 0.325,
-          "TE": 0.1125
-        },
-        "6": {
-          "QB": 0.1,
-          "RB": 0.225,
-          "WR": 0.25,
-          "TE": 0.425
-        },
-        "7": {
-          "QB": 0.075,
-          "RB": 0.25,
-          "WR": 0.5625,
-          "TE": 0.1,
-          "K": 0.0125
-        },
-        "8": {
-          "QB": 0.1375,
-          "RB": 0.4875,
-          "WR": 0.3125,
-          "TE": 0.05,
-          "DST": 0.0125
-        },
-        "9": {
-          "QB": 0.0875,
-          "RB": 0.1625,
-          "WR": 0.3125,
-          "TE": 0.3375,
-          "K": 0.025,
-          "DST": 0.075
-        },
-        "10": {
-          "QB": 0.1,
-          "RB": 0.1375,
-          "WR": 0.525,
-          "TE": 0.05,
-          "K": 0.1,
-          "DST": 0.0875
-        },
-        "11": {
-          "QB": 0.3875,
-          "RB": 0.1,
-          "WR": 0.1125,
-          "TE": 0.0875,
-          "K": 0.1125,
-          "DST": 0.2
-        },
-        "12": {
-          "QB": 0.1,
-          "RB": 0.1,
-          "WR": 0.075,
-          "TE": 0.0875,
-          "K": 0.425,
-          "DST": 0.2125
-        },
-        "13": {
-          "QB": 0.05,
-          "RB": 0.1125,
-          "WR": 0.0625,
-          "TE": 0.025,
-          "K": 0.325,
-          "DST": 0.425
-        }
-      },
-      "firstPositionRound": {
-        "QB": 5,
-        "RB": 1,
-        "WR": 3,
-        "TE": 6,
-        "K": 12,
-        "DST": 13
-      },
-      "earlyRoundShape": {
-        "RB": 2,
-        "WR": 1
-      },
-      "tells": [
-        {
-          "label": "First QB around round 5",
-          "position": "QB",
-          "value": 5,
-          "sampleSize": 1
-        }
-      ]
-    },
-    {
-      "ownerId": "owner-saquads-barkley",
-      "displayName": "SaQUADs Barkley",
-      "leagueId": "B-LEAGUE",
-      "teamNames": [
-        "SaQUADs Barkley"
-      ],
-      "seasons": [
-        2021
-      ],
-      "crossLeague": false,
-      "pickCount": 13,
-      "adpMatchedCount": 0,
-      "confidence": 0,
-      "overallReach": -0.92,
-      "reachByPosition": {},
-      "positionShare": {
-        "QB": 0.1538,
-        "RB": 0.3077,
-        "WR": 0.3077,
-        "TE": 0.0769,
-        "K": 0.0769,
-        "DST": 0.0769
-      },
-      "positionByRound": {
-        "1": {
-          "RB": 0.75,
-          "WR": 0.225,
-          "TE": 0.025
-        },
-        "2": {
-          "QB": 0.0625,
-          "RB": 0.5625,
-          "WR": 0.3125,
-          "TE": 0.0625
-        },
-        "3": {
-          "QB": 0.0875,
-          "RB": 0.2375,
-          "WR": 0.6,
-          "TE": 0.075
-        },
-        "4": {
-          "QB": 0.15,
-          "RB": 0.2375,
-          "WR": 0.5625,
-          "TE": 0.05
-        },
-        "5": {
-          "QB": 0.1,
-          "RB": 0.4625,
-          "WR": 0.325,
-          "TE": 0.1125
-        },
-        "6": {
-          "QB": 0.1,
-          "RB": 0.225,
-          "WR": 0.25,
-          "TE": 0.425
-        },
-        "7": {
-          "QB": 0.325,
-          "RB": 0.25,
-          "WR": 0.3125,
-          "TE": 0.1,
-          "K": 0.0125
-        },
-        "8": {
-          "QB": 0.1375,
-          "RB": 0.2375,
-          "WR": 0.5625,
-          "TE": 0.05,
-          "DST": 0.0125
-        },
-        "9": {
-          "QB": 0.0875,
-          "RB": 0.1625,
-          "WR": 0.5625,
-          "TE": 0.0875,
-          "K": 0.025,
-          "DST": 0.075
-        },
-        "10": {
-          "QB": 0.1,
-          "RB": 0.3875,
-          "WR": 0.275,
-          "TE": 0.05,
-          "K": 0.1,
-          "DST": 0.0875
-        },
-        "11": {
-          "QB": 0.3875,
-          "RB": 0.1,
-          "WR": 0.1125,
-          "TE": 0.0875,
-          "K": 0.1125,
-          "DST": 0.2
-        },
-        "12": {
-          "QB": 0.1,
-          "RB": 0.1,
-          "WR": 0.075,
-          "TE": 0.0875,
-          "K": 0.175,
-          "DST": 0.4625
-        },
-        "13": {
-          "QB": 0.05,
-          "RB": 0.1125,
-          "WR": 0.0625,
-          "TE": 0.025,
-          "K": 0.575,
-          "DST": 0.175
-        }
-      },
-      "firstPositionRound": {
-        "QB": 7,
-        "RB": 1,
-        "WR": 3,
-        "TE": 6,
-        "K": 13,
-        "DST": 12
-      },
-      "earlyRoundShape": {
-        "RB": 2,
-        "WR": 1
-      },
-      "tells": [
-        {
-          "label": "First QB around round 7",
-          "position": "QB",
-          "value": 7,
-          "sampleSize": 1
         }
       ]
     },
@@ -3944,28 +3843,32 @@
       ],
       "crossLeague": false,
       "pickCount": 39,
-      "adpMatchedCount": 22,
-      "confidence": 0.65,
-      "overallReach": -1.43,
+      "adpMatchedCount": 34,
+      "confidence": 0.74,
+      "overallReach": -0.8,
       "reachByPosition": {
         "QB": {
-          "mean": -6.45,
-          "sampleSize": 3
+          "mean": -5.4,
+          "sampleSize": 5
         },
         "RB": {
-          "mean": -2.35,
-          "sampleSize": 8
+          "mean": -1.86,
+          "sampleSize": 12
         },
         "WR": {
-          "mean": -1.09,
-          "sampleSize": 7
+          "mean": -2.4,
+          "sampleSize": 9
         },
         "TE": {
-          "mean": -1.7,
-          "sampleSize": 3
+          "mean": -0.75,
+          "sampleSize": 5
         },
         "K": {
-          "mean": 4.9,
+          "mean": 6.95,
+          "sampleSize": 2
+        },
+        "DST": {
+          "mean": 4.12,
           "sampleSize": 1
         }
       },
@@ -4083,12 +3986,6 @@
       },
       "tells": [
         {
-          "label": "Waits on QB, 6.45 picks behind ADP",
-          "position": "QB",
-          "value": -6.45,
-          "sampleSize": 3
-        },
-        {
           "label": "First QB around round 4.33",
           "position": "QB",
           "value": 4.33,
@@ -4110,22 +4007,22 @@
       "pickCount": 13,
       "adpMatchedCount": 11,
       "confidence": 0.48,
-      "overallReach": -1.57,
+      "overallReach": -1.28,
       "reachByPosition": {
         "QB": {
-          "mean": -15.01,
+          "mean": -14.82,
           "sampleSize": 2
         },
         "RB": {
-          "mean": 8.74,
+          "mean": 8.88,
           "sampleSize": 4
         },
         "WR": {
-          "mean": -3.2,
+          "mean": -3.05,
           "sampleSize": 4
         },
         "DST": {
-          "mean": -2.58,
+          "mean": -2.35,
           "sampleSize": 1
         }
       },
@@ -4248,9 +4145,9 @@
           "sampleSize": 1
         },
         {
-          "label": "Takes RB early, 8.74 picks ahead of ADP",
+          "label": "Takes RB early, 8.88 picks ahead of ADP",
           "position": "RB",
-          "value": 8.74,
+          "value": 8.88,
           "sampleSize": 4
         }
       ]
@@ -4271,30 +4168,30 @@
       "pickCount": 39,
       "adpMatchedCount": 36,
       "confidence": 0.75,
-      "overallReach": -1.58,
+      "overallReach": -1.41,
       "reachByPosition": {
         "QB": {
-          "mean": -5.13,
+          "mean": -5.03,
           "sampleSize": 3
         },
         "RB": {
-          "mean": -0.44,
+          "mean": -0.39,
           "sampleSize": 10
         },
         "WR": {
-          "mean": -4.77,
+          "mean": -4.73,
           "sampleSize": 15
         },
         "TE": {
-          "mean": -4.01,
+          "mean": -3.93,
           "sampleSize": 4
         },
         "K": {
-          "mean": 0.92,
+          "mean": 1.05,
           "sampleSize": 1
         },
         "DST": {
-          "mean": 7.01,
+          "mean": 7.11,
           "sampleSize": 3
         }
       },
@@ -4420,6 +4317,173 @@
       ]
     },
     {
+      "ownerId": "owner-saquads-barkley",
+      "displayName": "SaQUADs Barkley",
+      "leagueId": "B-LEAGUE",
+      "teamNames": [
+        "SaQUADs Barkley"
+      ],
+      "seasons": [
+        2021
+      ],
+      "crossLeague": false,
+      "pickCount": 13,
+      "adpMatchedCount": 12,
+      "confidence": 0.5,
+      "overallReach": -1.87,
+      "reachByPosition": {
+        "QB": {
+          "mean": -3.55,
+          "sampleSize": 2
+        },
+        "RB": {
+          "mean": -0.23,
+          "sampleSize": 3
+        },
+        "WR": {
+          "mean": -8.12,
+          "sampleSize": 4
+        },
+        "TE": {
+          "mean": -3.88,
+          "sampleSize": 1
+        },
+        "K": {
+          "mean": 2.76,
+          "sampleSize": 1
+        },
+        "DST": {
+          "mean": -1.6,
+          "sampleSize": 1
+        }
+      },
+      "positionShare": {
+        "QB": 0.1538,
+        "RB": 0.3077,
+        "WR": 0.3077,
+        "TE": 0.0769,
+        "K": 0.0769,
+        "DST": 0.0769
+      },
+      "positionByRound": {
+        "1": {
+          "RB": 0.75,
+          "WR": 0.225,
+          "TE": 0.025
+        },
+        "2": {
+          "QB": 0.0625,
+          "RB": 0.5625,
+          "WR": 0.3125,
+          "TE": 0.0625
+        },
+        "3": {
+          "QB": 0.0875,
+          "RB": 0.2375,
+          "WR": 0.6,
+          "TE": 0.075
+        },
+        "4": {
+          "QB": 0.15,
+          "RB": 0.2375,
+          "WR": 0.5625,
+          "TE": 0.05
+        },
+        "5": {
+          "QB": 0.1,
+          "RB": 0.4625,
+          "WR": 0.325,
+          "TE": 0.1125
+        },
+        "6": {
+          "QB": 0.1,
+          "RB": 0.225,
+          "WR": 0.25,
+          "TE": 0.425
+        },
+        "7": {
+          "QB": 0.325,
+          "RB": 0.25,
+          "WR": 0.3125,
+          "TE": 0.1,
+          "K": 0.0125
+        },
+        "8": {
+          "QB": 0.1375,
+          "RB": 0.2375,
+          "WR": 0.5625,
+          "TE": 0.05,
+          "DST": 0.0125
+        },
+        "9": {
+          "QB": 0.0875,
+          "RB": 0.1625,
+          "WR": 0.5625,
+          "TE": 0.0875,
+          "K": 0.025,
+          "DST": 0.075
+        },
+        "10": {
+          "QB": 0.1,
+          "RB": 0.3875,
+          "WR": 0.275,
+          "TE": 0.05,
+          "K": 0.1,
+          "DST": 0.0875
+        },
+        "11": {
+          "QB": 0.3875,
+          "RB": 0.1,
+          "WR": 0.1125,
+          "TE": 0.0875,
+          "K": 0.1125,
+          "DST": 0.2
+        },
+        "12": {
+          "QB": 0.1,
+          "RB": 0.1,
+          "WR": 0.075,
+          "TE": 0.0875,
+          "K": 0.175,
+          "DST": 0.4625
+        },
+        "13": {
+          "QB": 0.05,
+          "RB": 0.1125,
+          "WR": 0.0625,
+          "TE": 0.025,
+          "K": 0.575,
+          "DST": 0.175
+        }
+      },
+      "firstPositionRound": {
+        "QB": 7,
+        "RB": 1,
+        "WR": 3,
+        "TE": 6,
+        "K": 13,
+        "DST": 12
+      },
+      "earlyRoundShape": {
+        "RB": 2,
+        "WR": 1
+      },
+      "tells": [
+        {
+          "label": "Waits on WR, 8.12 picks behind ADP",
+          "position": "WR",
+          "value": -8.12,
+          "sampleSize": 4
+        },
+        {
+          "label": "First QB around round 7",
+          "position": "QB",
+          "value": 7,
+          "sampleSize": 1
+        }
+      ]
+    },
+    {
       "ownerId": "owner-roswell-aliens",
       "displayName": "Roswell Aliens",
       "leagueId": "B-LEAGUE",
@@ -4435,33 +4499,33 @@
       ],
       "crossLeague": true,
       "pickCount": 65,
-      "adpMatchedCount": 47,
-      "confidence": 0.8,
-      "overallReach": -2.08,
+      "adpMatchedCount": 60,
+      "confidence": 0.83,
+      "overallReach": -2.84,
       "reachByPosition": {
         "QB": {
-          "mean": -6.57,
-          "sampleSize": 7
+          "mean": -8.22,
+          "sampleSize": 9
         },
         "RB": {
-          "mean": -1.38,
-          "sampleSize": 14
+          "mean": -3.64,
+          "sampleSize": 18
         },
         "WR": {
-          "mean": -6.17,
-          "sampleSize": 17
+          "mean": -7.3,
+          "sampleSize": 21
         },
         "TE": {
-          "mean": 1.23,
-          "sampleSize": 5
+          "mean": 1.75,
+          "sampleSize": 6
         },
         "K": {
-          "mean": 0.81,
-          "sampleSize": 2
+          "mean": 0.45,
+          "sampleSize": 3
         },
         "DST": {
-          "mean": 5.59,
-          "sampleSize": 2
+          "mean": 7.48,
+          "sampleSize": 3
         }
       },
       "positionShare": {
@@ -4578,200 +4642,21 @@
       },
       "tells": [
         {
-          "label": "Waits on QB, 6.57 picks behind ADP",
+          "label": "Waits on QB, 8.22 picks behind ADP",
           "position": "QB",
-          "value": -6.57,
-          "sampleSize": 7
+          "value": -8.22,
+          "sampleSize": 9
         },
         {
-          "label": "Waits on WR, 6.17 picks behind ADP",
+          "label": "Waits on WR, 7.3 picks behind ADP",
           "position": "WR",
-          "value": -6.17,
-          "sampleSize": 17
+          "value": -7.3,
+          "sampleSize": 21
         },
         {
           "label": "First QB around round 5.8",
           "position": "QB",
           "value": 5.8,
-          "sampleSize": 5
-        }
-      ]
-    },
-    {
-      "ownerId": "owner-jew-breez",
-      "displayName": "Jew Breez",
-      "leagueId": "B-LEAGUE",
-      "teamNames": [
-        "Jew Breez"
-      ],
-      "seasons": [
-        2021,
-        2022,
-        2023,
-        2024,
-        2025
-      ],
-      "crossLeague": false,
-      "pickCount": 65,
-      "adpMatchedCount": 44,
-      "confidence": 0.79,
-      "overallReach": -2.11,
-      "reachByPosition": {
-        "QB": {
-          "mean": -6.25,
-          "sampleSize": 5
-        },
-        "RB": {
-          "mean": -0.69,
-          "sampleSize": 13
-        },
-        "WR": {
-          "mean": -6.59,
-          "sampleSize": 19
-        },
-        "TE": {
-          "mean": 2.15,
-          "sampleSize": 4
-        },
-        "K": {
-          "mean": 1.69,
-          "sampleSize": 1
-        },
-        "DST": {
-          "mean": 3.5,
-          "sampleSize": 2
-        }
-      },
-      "positionShare": {
-        "QB": 0.0923,
-        "RB": 0.2769,
-        "WR": 0.4,
-        "TE": 0.0769,
-        "K": 0.0769,
-        "DST": 0.0769
-      },
-      "positionByRound": {
-        "1": {
-          "RB": 0.5,
-          "WR": 0.3625,
-          "TE": 0.1375
-        },
-        "2": {
-          "QB": 0.0312,
-          "RB": 0.4063,
-          "WR": 0.5313,
-          "TE": 0.0312
-        },
-        "3": {
-          "QB": 0.2938,
-          "RB": 0.1188,
-          "WR": 0.55,
-          "TE": 0.0375
-        },
-        "4": {
-          "QB": 0.2,
-          "RB": 0.6188,
-          "WR": 0.1563,
-          "TE": 0.025
-        },
-        "5": {
-          "QB": 0.05,
-          "RB": 0.4812,
-          "WR": 0.4125,
-          "TE": 0.0562
-        },
-        "6": {
-          "QB": 0.05,
-          "RB": 0.2375,
-          "WR": 0.625,
-          "TE": 0.0875
-        },
-        "7": {
-          "QB": 0.0375,
-          "RB": 0.125,
-          "WR": 0.6563,
-          "TE": 0.175,
-          "K": 0.0063
-        },
-        "8": {
-          "QB": 0.0687,
-          "RB": 0.1188,
-          "WR": 0.7813,
-          "TE": 0.025,
-          "DST": 0.0063
-        },
-        "9": {
-          "QB": 0.2938,
-          "RB": 0.2063,
-          "WR": 0.2813,
-          "TE": 0.1688,
-          "K": 0.0125,
-          "DST": 0.0375
-        },
-        "10": {
-          "QB": 0.05,
-          "RB": 0.4437,
-          "WR": 0.2625,
-          "TE": 0.15,
-          "K": 0.05,
-          "DST": 0.0438
-        },
-        "11": {
-          "QB": 0.0687,
-          "RB": 0.175,
-          "WR": 0.1812,
-          "TE": 0.1688,
-          "K": 0.0562,
-          "DST": 0.35
-        },
-        "12": {
-          "QB": 0.175,
-          "RB": 0.05,
-          "WR": 0.0375,
-          "TE": 0.0438,
-          "K": 0.2125,
-          "DST": 0.4812
-        },
-        "13": {
-          "QB": 0.025,
-          "RB": 0.1812,
-          "WR": 0.0312,
-          "TE": 0.0125,
-          "K": 0.6625,
-          "DST": 0.0875
-        }
-      },
-      "firstPositionRound": {
-        "QB": 5.6,
-        "RB": 2,
-        "WR": 2.2,
-        "TE": 7.6,
-        "K": 12.8,
-        "DST": 11.6
-      },
-      "earlyRoundShape": {
-        "TE": 1,
-        "RB": 4,
-        "QB": 2,
-        "WR": 8
-      },
-      "tells": [
-        {
-          "label": "Waits on WR, 6.59 picks behind ADP",
-          "position": "WR",
-          "value": -6.59,
-          "sampleSize": 19
-        },
-        {
-          "label": "Waits on QB, 6.25 picks behind ADP",
-          "position": "QB",
-          "value": -6.25,
-          "sampleSize": 5
-        },
-        {
-          "label": "First QB around round 5.6",
-          "position": "QB",
-          "value": 5.6,
           "sampleSize": 5
         }
       ]
@@ -4792,30 +4677,30 @@
       "pickCount": 39,
       "adpMatchedCount": 38,
       "confidence": 0.76,
-      "overallReach": -3.44,
+      "overallReach": -3.27,
       "reachByPosition": {
         "QB": {
-          "mean": -4.76,
+          "mean": -4.67,
           "sampleSize": 3
         },
         "RB": {
-          "mean": -7.42,
+          "mean": -7.39,
           "sampleSize": 15
         },
         "WR": {
-          "mean": -6.62,
+          "mean": -6.58,
           "sampleSize": 12
         },
         "TE": {
-          "mean": -4.88,
+          "mean": -4.79,
           "sampleSize": 3
         },
         "K": {
-          "mean": 1.93,
+          "mean": 2.03,
           "sampleSize": 2
         },
         "DST": {
-          "mean": 3.85,
+          "mean": 3.94,
           "sampleSize": 3
         }
       },
@@ -4934,15 +4819,15 @@
       },
       "tells": [
         {
-          "label": "Waits on RB, 7.42 picks behind ADP",
+          "label": "Waits on RB, 7.39 picks behind ADP",
           "position": "RB",
-          "value": -7.42,
+          "value": -7.39,
           "sampleSize": 15
         },
         {
-          "label": "Waits on WR, 6.62 picks behind ADP",
+          "label": "Waits on WR, 6.58 picks behind ADP",
           "position": "WR",
-          "value": -6.62,
+          "value": -6.58,
           "sampleSize": 12
         },
         {
@@ -4954,11 +4839,11 @@
       ]
     },
     {
-      "ownerId": "owner-shmickle-the-pickle",
-      "displayName": "Shmickle the Pickle",
+      "ownerId": "owner-jew-breez",
+      "displayName": "Jew Breez",
       "leagueId": "B-LEAGUE",
       "teamNames": [
-        "Shmickle the Pickle"
+        "Jew Breez"
       ],
       "seasons": [
         2021,
@@ -4969,164 +4854,171 @@
       ],
       "crossLeague": false,
       "pickCount": 65,
-      "adpMatchedCount": 47,
-      "confidence": 0.8,
-      "overallReach": -3.61,
+      "adpMatchedCount": 57,
+      "confidence": 0.83,
+      "overallReach": -3.53,
       "reachByPosition": {
         "QB": {
-          "mean": -11.04,
-          "sampleSize": 7
+          "mean": -6.33,
+          "sampleSize": 6
         },
         "RB": {
-          "mean": -3.3,
-          "sampleSize": 13
+          "mean": -6.79,
+          "sampleSize": 17
         },
         "WR": {
-          "mean": -8.3,
-          "sampleSize": 15
+          "mean": -6.41,
+          "sampleSize": 24
         },
         "TE": {
-          "mean": -0.5,
-          "sampleSize": 7
+          "mean": 0.91,
+          "sampleSize": 5
         },
         "K": {
-          "mean": -0.56,
+          "mean": 2.15,
           "sampleSize": 2
         },
         "DST": {
-          "mean": 2.88,
+          "mean": 0.44,
           "sampleSize": 3
         }
       },
       "positionShare": {
-        "QB": 0.1538,
-        "RB": 0.2923,
-        "WR": 0.2769,
-        "TE": 0.1231,
+        "QB": 0.0923,
+        "RB": 0.2769,
+        "WR": 0.4,
+        "TE": 0.0769,
         "K": 0.0769,
         "DST": 0.0769
       },
       "positionByRound": {
         "1": {
-          "RB": 0.75,
-          "WR": 0.2375,
-          "TE": 0.0125
+          "RB": 0.5,
+          "WR": 0.3625,
+          "TE": 0.1375
         },
         "2": {
           "QB": 0.0312,
-          "RB": 0.5313,
-          "WR": 0.2813,
-          "TE": 0.1562
+          "RB": 0.4063,
+          "WR": 0.5313,
+          "TE": 0.0312
         },
         "3": {
-          "QB": 0.0438,
-          "RB": 0.2438,
-          "WR": 0.675,
+          "QB": 0.2938,
+          "RB": 0.1188,
+          "WR": 0.55,
           "TE": 0.0375
         },
         "4": {
-          "QB": 0.325,
-          "RB": 0.2438,
-          "WR": 0.2813,
-          "TE": 0.15
+          "QB": 0.2,
+          "RB": 0.6188,
+          "WR": 0.1563,
+          "TE": 0.025
         },
         "5": {
           "QB": 0.05,
-          "RB": 0.3562,
+          "RB": 0.4812,
           "WR": 0.4125,
-          "TE": 0.1812
+          "TE": 0.0562
         },
         "6": {
           "QB": 0.05,
           "RB": 0.2375,
-          "WR": 0.375,
-          "TE": 0.3375
+          "WR": 0.625,
+          "TE": 0.0875
         },
         "7": {
-          "QB": 0.1625,
-          "RB": 0.5,
-          "WR": 0.2813,
-          "TE": 0.05,
+          "QB": 0.0375,
+          "RB": 0.125,
+          "WR": 0.6563,
+          "TE": 0.175,
           "K": 0.0063
         },
         "8": {
-          "QB": 0.3187,
+          "QB": 0.0687,
           "RB": 0.1188,
-          "WR": 0.5313,
+          "WR": 0.7813,
           "TE": 0.025,
           "DST": 0.0063
         },
         "9": {
-          "QB": 0.1688,
+          "QB": 0.2938,
           "RB": 0.2063,
           "WR": 0.2813,
           "TE": 0.1688,
           "K": 0.0125,
-          "DST": 0.1625
+          "DST": 0.0375
         },
         "10": {
-          "QB": 0.3,
-          "RB": 0.1937,
+          "QB": 0.05,
+          "RB": 0.4437,
           "WR": 0.2625,
-          "TE": 0.025,
+          "TE": 0.15,
           "K": 0.05,
-          "DST": 0.1688
+          "DST": 0.0438
         },
         "11": {
           "QB": 0.0687,
           "RB": 0.175,
           "WR": 0.1812,
-          "TE": 0.0438,
+          "TE": 0.1688,
           "K": 0.0562,
-          "DST": 0.475
+          "DST": 0.35
         },
         "12": {
-          "QB": 0.3,
+          "QB": 0.175,
           "RB": 0.05,
           "WR": 0.0375,
-          "TE": 0.1688,
-          "K": 0.3375,
-          "DST": 0.1062
+          "TE": 0.0438,
+          "K": 0.2125,
+          "DST": 0.4812
         },
         "13": {
           "QB": 0.025,
           "RB": 0.1812,
           "WR": 0.0312,
-          "TE": 0.1375,
-          "K": 0.5375,
+          "TE": 0.0125,
+          "K": 0.6625,
           "DST": 0.0875
         }
       },
       "firstPositionRound": {
-        "QB": 6.2,
-        "RB": 1.4,
-        "WR": 2.6,
-        "TE": 4.6,
-        "K": 12.6,
-        "DST": 10.4
+        "QB": 5.6,
+        "RB": 2,
+        "WR": 2.2,
+        "TE": 7.6,
+        "K": 12.8,
+        "DST": 11.6
       },
       "earlyRoundShape": {
-        "RB": 8,
-        "WR": 6,
-        "TE": 1
+        "TE": 1,
+        "RB": 4,
+        "QB": 2,
+        "WR": 8
       },
       "tells": [
         {
-          "label": "Waits on QB, 11.04 picks behind ADP",
-          "position": "QB",
-          "value": -11.04,
-          "sampleSize": 7
+          "label": "Waits on RB, 6.79 picks behind ADP",
+          "position": "RB",
+          "value": -6.79,
+          "sampleSize": 17
         },
         {
-          "label": "Waits on WR, 8.3 picks behind ADP",
+          "label": "Waits on WR, 6.41 picks behind ADP",
           "position": "WR",
-          "value": -8.3,
-          "sampleSize": 15
+          "value": -6.41,
+          "sampleSize": 24
         },
         {
-          "label": "First QB around round 6.2",
+          "label": "Waits on QB, 6.33 picks behind ADP",
           "position": "QB",
-          "value": 6.2,
+          "value": -6.33,
+          "sampleSize": 6
+        },
+        {
+          "label": "First QB around round 5.6",
+          "position": "QB",
+          "value": 5.6,
           "sampleSize": 5
         }
       ]
@@ -5145,26 +5037,26 @@
       "pickCount": 13,
       "adpMatchedCount": 12,
       "confidence": 0.5,
-      "overallReach": -3.85,
+      "overallReach": -3.58,
       "reachByPosition": {
         "QB": {
-          "mean": -9.1,
+          "mean": -8.92,
           "sampleSize": 2
         },
         "RB": {
-          "mean": -9.13,
+          "mean": -8.99,
           "sampleSize": 4
         },
         "WR": {
-          "mean": -11.44,
+          "mean": -11.3,
           "sampleSize": 4
         },
         "TE": {
-          "mean": 1.12,
+          "mean": 1.34,
           "sampleSize": 1
         },
         "DST": {
-          "mean": 3.38,
+          "mean": 3.6,
           "sampleSize": 1
         }
       },
@@ -5282,15 +5174,15 @@
       },
       "tells": [
         {
-          "label": "Waits on WR, 11.44 picks behind ADP",
+          "label": "Waits on WR, 11.3 picks behind ADP",
           "position": "WR",
-          "value": -11.44,
+          "value": -11.3,
           "sampleSize": 4
         },
         {
-          "label": "Waits on RB, 9.13 picks behind ADP",
+          "label": "Waits on RB, 8.99 picks behind ADP",
           "position": "RB",
-          "value": -9.13,
+          "value": -8.99,
           "sampleSize": 4
         },
         {
@@ -5298,6 +5190,184 @@
           "position": "QB",
           "value": 2,
           "sampleSize": 1
+        }
+      ]
+    },
+    {
+      "ownerId": "owner-shmickle-the-pickle",
+      "displayName": "Shmickle the Pickle",
+      "leagueId": "B-LEAGUE",
+      "teamNames": [
+        "Shmickle the Pickle"
+      ],
+      "seasons": [
+        2021,
+        2022,
+        2023,
+        2024,
+        2025
+      ],
+      "crossLeague": false,
+      "pickCount": 65,
+      "adpMatchedCount": 60,
+      "confidence": 0.83,
+      "overallReach": -3.6,
+      "reachByPosition": {
+        "QB": {
+          "mean": -9.21,
+          "sampleSize": 9
+        },
+        "RB": {
+          "mean": -4.25,
+          "sampleSize": 18
+        },
+        "WR": {
+          "mean": -8.61,
+          "sampleSize": 18
+        },
+        "TE": {
+          "mean": -0.95,
+          "sampleSize": 8
+        },
+        "K": {
+          "mean": 0.73,
+          "sampleSize": 3
+        },
+        "DST": {
+          "mean": 3.65,
+          "sampleSize": 4
+        }
+      },
+      "positionShare": {
+        "QB": 0.1538,
+        "RB": 0.2923,
+        "WR": 0.2769,
+        "TE": 0.1231,
+        "K": 0.0769,
+        "DST": 0.0769
+      },
+      "positionByRound": {
+        "1": {
+          "RB": 0.75,
+          "WR": 0.2375,
+          "TE": 0.0125
+        },
+        "2": {
+          "QB": 0.0312,
+          "RB": 0.5313,
+          "WR": 0.2813,
+          "TE": 0.1562
+        },
+        "3": {
+          "QB": 0.0438,
+          "RB": 0.2438,
+          "WR": 0.675,
+          "TE": 0.0375
+        },
+        "4": {
+          "QB": 0.325,
+          "RB": 0.2438,
+          "WR": 0.2813,
+          "TE": 0.15
+        },
+        "5": {
+          "QB": 0.05,
+          "RB": 0.3562,
+          "WR": 0.4125,
+          "TE": 0.1812
+        },
+        "6": {
+          "QB": 0.05,
+          "RB": 0.2375,
+          "WR": 0.375,
+          "TE": 0.3375
+        },
+        "7": {
+          "QB": 0.1625,
+          "RB": 0.5,
+          "WR": 0.2813,
+          "TE": 0.05,
+          "K": 0.0063
+        },
+        "8": {
+          "QB": 0.3187,
+          "RB": 0.1188,
+          "WR": 0.5313,
+          "TE": 0.025,
+          "DST": 0.0063
+        },
+        "9": {
+          "QB": 0.1688,
+          "RB": 0.2063,
+          "WR": 0.2813,
+          "TE": 0.1688,
+          "K": 0.0125,
+          "DST": 0.1625
+        },
+        "10": {
+          "QB": 0.3,
+          "RB": 0.1937,
+          "WR": 0.2625,
+          "TE": 0.025,
+          "K": 0.05,
+          "DST": 0.1688
+        },
+        "11": {
+          "QB": 0.0687,
+          "RB": 0.175,
+          "WR": 0.1812,
+          "TE": 0.0438,
+          "K": 0.0562,
+          "DST": 0.475
+        },
+        "12": {
+          "QB": 0.3,
+          "RB": 0.05,
+          "WR": 0.0375,
+          "TE": 0.1688,
+          "K": 0.3375,
+          "DST": 0.1062
+        },
+        "13": {
+          "QB": 0.025,
+          "RB": 0.1812,
+          "WR": 0.0312,
+          "TE": 0.1375,
+          "K": 0.5375,
+          "DST": 0.0875
+        }
+      },
+      "firstPositionRound": {
+        "QB": 6.2,
+        "RB": 1.4,
+        "WR": 2.6,
+        "TE": 4.6,
+        "K": 12.6,
+        "DST": 10.4
+      },
+      "earlyRoundShape": {
+        "RB": 8,
+        "WR": 6,
+        "TE": 1
+      },
+      "tells": [
+        {
+          "label": "Waits on QB, 9.21 picks behind ADP",
+          "position": "QB",
+          "value": -9.21,
+          "sampleSize": 9
+        },
+        {
+          "label": "Waits on WR, 8.61 picks behind ADP",
+          "position": "WR",
+          "value": -8.61,
+          "sampleSize": 18
+        },
+        {
+          "label": "First QB around round 6.2",
+          "position": "QB",
+          "value": 6.2,
+          "sampleSize": 5
         }
       ]
     },
@@ -5317,33 +5387,33 @@
       ],
       "crossLeague": true,
       "pickCount": 65,
-      "adpMatchedCount": 46,
-      "confidence": 0.79,
-      "overallReach": -6.53,
+      "adpMatchedCount": 59,
+      "confidence": 0.83,
+      "overallReach": -5.81,
       "reachByPosition": {
         "QB": {
-          "mean": -10.43,
-          "sampleSize": 5
+          "mean": -8.05,
+          "sampleSize": 6
         },
         "RB": {
-          "mean": -9.93,
-          "sampleSize": 15
-        },
-        "WR": {
-          "mean": -10.92,
+          "mean": -7.66,
           "sampleSize": 19
         },
+        "WR": {
+          "mean": -11.27,
+          "sampleSize": 24
+        },
         "TE": {
-          "mean": -1.95,
-          "sampleSize": 4
+          "mean": -0.19,
+          "sampleSize": 5
         },
         "K": {
-          "mean": -3.4,
-          "sampleSize": 2
+          "mean": -1.38,
+          "sampleSize": 3
         },
         "DST": {
-          "mean": -5.42,
-          "sampleSize": 1
+          "mean": -5.12,
+          "sampleSize": 2
         }
       },
       "positionShare": {
@@ -5460,22 +5530,22 @@
       },
       "tells": [
         {
-          "label": "Waits on WR, 10.92 picks behind ADP",
+          "label": "Waits on WR, 11.27 picks behind ADP",
           "position": "WR",
-          "value": -10.92,
-          "sampleSize": 19
+          "value": -11.27,
+          "sampleSize": 24
         },
         {
-          "label": "Waits on QB, 10.43 picks behind ADP",
+          "label": "Waits on QB, 8.05 picks behind ADP",
           "position": "QB",
-          "value": -10.43,
-          "sampleSize": 5
+          "value": -8.05,
+          "sampleSize": 6
         },
         {
-          "label": "Waits on RB, 9.93 picks behind ADP",
+          "label": "Waits on RB, 7.66 picks behind ADP",
           "position": "RB",
-          "value": -9.93,
-          "sampleSize": 15
+          "value": -7.66,
+          "sampleSize": 19
         },
         {
           "label": "First QB around round 4.6",
