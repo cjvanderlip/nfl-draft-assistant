@@ -6,4 +6,5 @@ on:
 
 jobs:
   call-reusable-workflow:
+    if: ${{ false }} # TODO: replace `uses:` with your actual reusable workflow ref, then remove this guard
     uses: owner/repo/.github/workflows/file.yml@ref
