@@ -23,10 +23,19 @@ setup screen warns when the cache is more than three days old. The seasons it do
 from the filenames in `historical-draft-data/`, so dropping a new export there is enough.
 
 In the browser: choose the league, set the season and your draft slot, paste the draft order
-one team per line in slot order, and hit **Start draft**. Then type each pick as it happens
-and press Enter — two or three letters of a surname is usually enough. When a name is
-ambiguous, press `1`–`4` to choose without leaving the keyboard. A name outside the ADP pool
-can still be recorded, with its position, so the board never falls out of step.
+one team per line in slot order, and hit **Start draft**. Then record each pick as it happens,
+either way round:
+
+- **Type it** — two or three letters of a surname is usually enough, then Enter. When a name
+  is ambiguous, press `1`–`4` to choose without leaving the keyboard.
+- **Click it** — a single click on a row in the grid stages that player and says which pick
+  and which team confirming would fill; Enter or a double-click commits it, Escape cancels.
+  A single click never drafts anybody on its own, because the grid sits under the cursor all
+  draft and a stray click that silently recorded a pick would put every later pick on the
+  wrong team.
+
+A name outside the ADP pool can still be recorded, with its position, so the board never
+falls out of step.
 
 ### Before it lets you start
 
