@@ -39,10 +39,15 @@ falls out of step.
 
 ### Before it lets you start
 
-The team list loads in no particular order — it is the league's managers, not a draft order —
-so it always has to be reordered against the posted one. As you edit, a line under the box
-says who is currently sitting at your slot, and names the line your own team is on if it is
-somewhere else. That check runs while the mistake is still one edit away from being fixed.
+**Paste the posted draft order straight in.** The CBS table — title, the note about even
+rounds, the `Pick / Team` header, numbered rows — is parsed into one team per line in pick
+order, so there is nothing to retype or hand-sort. Rows are ordered by their own pick number,
+so a table copied out of sequence still lands right, and a plain list of names still works.
+
+The list the screen loads on its own is the league's managers in no particular order, *not* a
+draft order, so it always has to be replaced. As you edit, a line under the box says who is
+sitting at your slot and names the line your own team is on if it is somewhere else — while
+the mistake is still one edit from being fixed.
 
 The server then re-checks two things that become invisible the moment a draft is running:
 
