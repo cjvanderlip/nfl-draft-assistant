@@ -1,10 +1,13 @@
-# SDLC Agent Configuration Guide
+# SDLC agent configuration guide
+
+How to author and customize the agent, prompt, and instruction files. For what the agents
+are and how to invoke them, see `copilot-agents.md`.
 
 This document explains how the agent ecosystem is structured and how to customize or extend it.
 
 ## Directory Structure
 
-```
+```text
 .github/
 ├── copilot-instructions.md          # Repository-wide conventions
 ├── agents/
@@ -15,10 +18,9 @@ This document explains how the agent ecosystem is structured and how to customiz
 │   ├── code-reviewer.agent.md       # Code review phase
 │   ├── security-engineer.agent.md   # Security phase
 │   └── orchestrator.agent.md        # Full lifecycle coordination
+├── copilot-agents.md                # What the agents are and how to invoke them
 ├── instructions/
-│   ├── models.instructions.md       # src/models/** rules
-│   ├── services.instructions.md     # src/services/** rules
-│   └── utils.instructions.md        # src/utils/** rules
+│   └── services.instructions.md     # src/services/** rules
 └── prompts/
     ├── generate-tests.prompt.md     # Generate unit tests
     ├── test-edge-cases.prompt.md    # Add edge case coverage
@@ -94,17 +96,17 @@ Each instruction file (`.instructions.md`) targets a directory with glob pattern
 
 ```yaml
 ---
-applyTo: "src/models/**"
+applyTo: "src/services/**"
 ---
 
-# Model File Instructions
+# Service File Instructions
 
 - Export a single class per file
 - ...more rules...
 ```
 
 The `applyTo` field uses glob patterns:
-- `src/models/**` - All files in src/models/ and subdirectories
+- `src/services/**` - All files in src/services/ and subdirectories
 - `src/**/*.ts` - All .ts files under src/
 - `tests/**/*.test.ts` - All test files
 
@@ -269,7 +271,7 @@ Use the error handling pattern from `src/errors/handler.ts`.
 ```markdown
 ## Example
 
-Input: `src/models/user.ts`
+Input: `src/services/player-pool.ts`
 Output: Test file at `tests/models/user.test.ts`
 with 80%+ coverage
 ```
@@ -302,7 +304,7 @@ After any changes to agents, prompts, or instructions:
 2. Your prompts should appear in the list
 
 ### Test Path-Specific Instructions
-1. Edit a file in a specific directory (e.g., `src/models/draft.ts`)
+1. Edit a file in a specific directory (e.g., `src/services/draft-board.ts`)
 2. Open Copilot Chat
 3. Ask: "What are the code conventions for this file?"
 4. Check "Reviewed n files" to see which instruction files loaded
