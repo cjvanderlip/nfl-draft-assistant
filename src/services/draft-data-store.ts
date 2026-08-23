@@ -5,6 +5,7 @@ import { assertNonEmptyString, type Position } from '../../validators.js';
 import { importHistoricalDraftCsv } from './historical-draft-importer.js';
 import { buildMatchKey, buildPlayerPool, toDomainPosition, type AdpSourceEntry, type PlayerPool, type SleeperSourceEntry } from './player-pool.js';
 import type { ManagerProfileSet, ProfilePick, SeasonAdpIndex } from './manager-profile-builder.js';
+import { FALLBACK_SCORING_FORMAT, LEAGUE_SCORING_FORMAT, LEAGUE_TEAM_COUNT } from '../config/league.js';
 
 export interface DataStoreOptions {
   dataDirectory?: string;
@@ -13,8 +14,8 @@ export interface DataStoreOptions {
   teams?: number;
 }
 
-const DEFAULT_FORMAT = 'ppr';
-const DEFAULT_TEAMS = 12;
+const DEFAULT_FORMAT = LEAGUE_SCORING_FORMAT;
+const DEFAULT_TEAMS = LEAGUE_TEAM_COUNT;
 
 function dataDir(options: DataStoreOptions | undefined): string {
   return options?.dataDirectory ?? join(process.cwd(), 'data');
@@ -155,11 +156,15 @@ export async function loadSleeperPlayers(options?: DataStoreOptions): Promise<Re
  * @returns Merged player pool.
  */
 export async function loadPlayerPool(season: number, options?: DataStoreOptions): Promise<PlayerPool> {
-  const [adpEntries, sleeperPlayers] = await Promise.all([
+  const format = options?.format ?? DEFAULT_FORMAT;
+  const [adpEntries, supplementalAdpEntries, sleeperPlayers] = await Promise.all([
     loadAdpEntries(season, options),
+    format === FALLBACK_SCORING_FORMAT
+      ? Promise.resolve([])
+      : loadAdpEntries(season, { ...options, format: FALLBACK_SCORING_FORMAT }),
     loadSleeperPlayers(options),
   ]);
-  return buildPlayerPool({ season, adpEntries, sleeperPlayers });
+  return buildPlayerPool({ season, adpEntries, supplementalAdpEntries, sleeperPlayers });
 }
 
 /**

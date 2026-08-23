@@ -1,6 +1,7 @@
 import { assertArray, assertInteger, assertNonEmptyString, assertObject, type Position } from '../../validators.js';
 import { searchPlayers, type PlayerPool, type PlayerPoolEntry } from './player-pool.js';
 import { resolveOwner } from './owner-registry.js';
+import { REALISTIC_ROSTER_LIMITS } from '../config/league.js';
 import type { ManagerProfile } from './manager-profile-builder.js';
 
 export interface BoardPick {
@@ -53,12 +54,7 @@ export interface DraftBoard {
   now: () => Date;
 }
 
-export const DEFAULT_ROSTER_LIMITS: Partial<Record<Position, number>> = {
-  QB: 2,
-  TE: 3,
-  K: 1,
-  DST: 1,
-};
+export const DEFAULT_ROSTER_LIMITS: Partial<Record<Position, number>> = REALISTIC_ROSTER_LIMITS;
 
 /**
  * Convert an overall pick number into its round and snake slot.

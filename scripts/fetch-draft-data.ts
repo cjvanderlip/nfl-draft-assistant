@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+import { LEAGUE_TEAM_COUNT, resolveScoringFormat } from '../src/config/league.js';
+
 const FFC_BASE_URL = 'https://fantasyfootballcalculator.com/api/v1/adp';
 const SLEEPER_PLAYERS_URL = 'https://api.sleeper.app/v1/players/nfl';
 
@@ -16,11 +18,11 @@ interface FetchOptions {
 }
 
 function parseArgs(argv: string[]): FetchOptions {
-  const format = (process.env.ADP_FORMAT ?? argv[0] ?? 'ppr').toLowerCase();
+  const format = resolveScoringFormat(process.env.ADP_FORMAT ?? argv[0]);
   if (!SUPPORTED_FORMATS.has(format)) {
     throw new TypeError(`ADP format must be one of: ${[...SUPPORTED_FORMATS].join(', ')}.`);
   }
-  const teams = Number(process.env.LEAGUE_TEAMS ?? argv[1] ?? 12);
+  const teams = Number(process.env.LEAGUE_TEAMS ?? argv[1] ?? LEAGUE_TEAM_COUNT);
   if (!Number.isInteger(teams) || teams < 4 || teams > 20) {
     throw new TypeError('LEAGUE_TEAMS must be an integer between 4 and 20.');
   }

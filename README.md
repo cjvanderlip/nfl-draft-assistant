@@ -73,30 +73,44 @@ Across five held-out drafts (A-League 2023–2025, B-League 2024–2025) predict
 tracks actual survival within a few points per bucket, and name resolution against the ADP
 pool runs at about 99%. Re-run it if the league or scoring format changes.
 
-## Roster requirements
+## League settings
 
-Across the 108 team-seasons in `historical-draft-data/`, every roster finished with exactly
-one kicker (108 of 108) and one defense (106 of 108), and none finished without a
-quarterback. Those three are treated as mandatory slots: the top bar counts them down
-against your remaining turns and warns while there is still slack, rather than letting you
-discover in round 12 that the last two picks are already spoken for. See
-`src/services/roster-requirements.ts`.
+`src/config/league.ts` holds what the CBS settings page says, so the numbers live in one
+place instead of being spread as defaults: half-PPR scoring, 12 teams, 13 rounds, and an
+active minimum of one at every position.
+
+That last one matters more than it looks. The league scores an illegal roster as **zero
+points for the week**, so finishing the draft without a kicker is not a soft mistake. The
+top bar counts the unfilled minimums down against your remaining turns and warns while
+there is still slack, rather than letting you find out in round 12 that both remaining
+picks are already spoken for. Historical drafts agree that this binds in practice: across
+108 team-seasons every roster ended with exactly one kicker (108 of 108) and one defense
+(106 of 108). See `src/services/roster-requirements.ts`.
+
+The simulation's per-position caps are behavioural rather than legal — the league sets no
+roster maximum — and are the observed historical maxima, so they only stop a simulated
+manager taking a fourth quarterback in the twelfth round.
 
 ## Configuration
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `ADP_FORMAT` | `ppr` | `ppr`, `half-ppr`, `standard`, `2qb`, `dynasty` |
+| `ADP_FORMAT` | `half-ppr` | `ppr`, `half-ppr`, `standard`, `2qb`, `dynasty` |
 | `LEAGUE_TEAMS` | `12` | League size for the ADP feed |
 | `SEASON` | current year | Season to download |
 | `PORT` | `3005` | API and UI port |
 
-**The scoring format is not recorded anywhere in the draft exports.** Everything defaults to
-12-team PPR. If the leagues are half-PPR or standard, set `ADP_FORMAT` before `draft:prep`,
-or every reach number will be measured against the wrong market. The format in use is now
-shown on the setup screen and in the board footer so the assumption is at least visible —
-but confirming it against the league settings is still a manual step, and it is the single
-highest-leverage thing to check before draft day.
+**The league is half-PPR** (`Recpt .5 points`, confirmed from the A-League settings page),
+not the full PPR everything defaulted to before. That default is now wrong-market and has
+been changed: see `src/config/league.ts`. `ADP_FORMAT` still overrides it. The format in use
+is shown on the setup screen and in the board footer.
+
+Half-PPR is the right market but the shallower feed — far more people mock-draft full PPR —
+so for 2026 it ranks 229 players against PPR's 266. The 38 it misses are mostly kickers,
+backup quarterbacks and deep tight ends, exactly the tail a thirteen-round draft reaches at
+the end. Those names are borrowed from the PPR feed purely so they resolve in the pick box
+(`adpFromFallback` marks them); half-PPR still ranks everyone it covers. Without that,
+name resolution on the held-out replays fell from 99% to 86%.
 
 The setup screen also shows how old the cached ADP is, dated by the window of real drafts
 the feed averaged rather than by the file's timestamp, and warns past three days. Late-August
@@ -117,6 +131,7 @@ ADP moves on preseason injuries, so re-run `npm run draft:prep` the day before e
 - `src/services/draft-board.ts` — live board: snake order, available pool, rosters, turns.
 - `src/services/survival-engine.ts` — the Monte Carlo simulation and its calibration.
 - `src/api/routes/board.ts` — the draft-day endpoints.
+- `src/config/league.ts` — the confirmed CBS league settings, in one place.
 - `src/services/roster-requirements.ts` — mandatory-slot countdown against remaining turns.
 - `src/services/board-persistence.ts` — the live snapshot that survives a restart.
 - `scripts/` — `fetch-draft-data`, `build-manager-profiles`, `replay-draft`.

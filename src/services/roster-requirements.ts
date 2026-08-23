@@ -1,4 +1,5 @@
 import type { Position } from '../../validators.js';
+import { LINEUP_MINIMUMS } from '../config/league.js';
 import { pickNumbersForSlot, type DraftBoard } from './draft-board.js';
 
 export interface RosterRequirement {
@@ -22,16 +23,13 @@ export interface RosterRequirementStatus {
 /**
  * Positions every team must finish the draft holding, and how many of each.
  *
- * Measured over the 108 team-seasons in `historical-draft-data/`: every roster
- * carries exactly one kicker (108 of 108) and one defense (106 of 108), and no
- * roster has ever finished without a quarterback. Nothing else is mandatory —
- * running back and receiver counts range too widely to constrain.
+ * These are the league's own active minimums rather than a guess from history —
+ * one of every position — and the league scores an illegal roster as zero for the
+ * week, so a missing slot forfeits rather than merely disappoints. Running back
+ * and receiver clear on the first pick at those positions and never bind in
+ * practice; quarterback, tight end, kicker and defense are the ones that bite.
  */
-export const MANDATORY_SLOTS: Partial<Record<Position, number>> = {
-  QB: 1,
-  K: 1,
-  DST: 1,
-};
+export const MANDATORY_SLOTS: Partial<Record<Position, number>> = LINEUP_MINIMUMS;
 
 /**
  * Report which mandatory roster slots are still unfilled and how much room is left.

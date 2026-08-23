@@ -13,6 +13,7 @@ import {
 import { createSeededRandom, simulateSurvival } from '../src/services/survival-engine.js';
 import { searchPlayers, type PlayerPoolEntry } from '../src/services/player-pool.js';
 import { isUserTeam } from '../src/services/owner-registry.js';
+import { resolveScoringFormat } from '../src/config/league.js';
 
 interface ReplayOptions {
   leagueId: string;
@@ -52,6 +53,12 @@ function newBuckets(): CalibrationBucket[] {
  * @returns Nothing; results are printed.
  */
 export async function replayDraft(options: ReplayOptions): Promise<void> {
+  // Read the same ADP cache the live board reads, so a replay never scores the
+  // model against a market the draft room is not using.
+  const dataStoreOptions = {
+    format: resolveScoringFormat(process.env.ADP_FORMAT),
+    teams: process.env.LEAGUE_TEAMS ? Number(process.env.LEAGUE_TEAMS) : undefined,
+  };
   const allPicks = await loadHistoricalPicks();
   const target = allPicks
     .filter((pick) => pick.leagueId === options.leagueId && pick.season === options.season)
@@ -65,11 +72,11 @@ export async function replayDraft(options: ReplayOptions): Promise<void> {
     ? allPicks.filter((pick) => !(pick.leagueId === options.leagueId && pick.season === options.season))
     : allPicks;
   const seasons = [...new Set(trainingPicks.map((pick) => pick.season))];
-  const adpBySeason = await loadSeasonAdpIndex(seasons);
+  const adpBySeason = await loadSeasonAdpIndex(seasons, dataStoreOptions);
   const profileSet = buildManagerProfiles({ picks: trainingPicks, adpBySeason });
   const profiles = profileSet.managers.filter((manager) => manager.leagueId === options.leagueId);
 
-  const pool = await loadPlayerPool(options.season);
+  const pool = await loadPlayerPool(options.season, dataStoreOptions);
   if (pool.players.length === 0) {
     throw new Error(`No ADP on disk for ${options.season}. Run "npm run data:fetch" first.`);
   }

@@ -30,45 +30,54 @@ function buildBoard(rounds: number): DraftBoard {
 }
 
 describe('evaluateRosterRequirements', () => {
-  it('reports every mandatory slot as outstanding on an empty roster', () => {
+  it('reports every lineup minimum as outstanding on an empty roster', () => {
     const status = evaluateRosterRequirements(buildBoard(13), {});
-    expect(status.needed.map((requirement) => requirement.position).sort()).toEqual(['DST', 'K', 'QB']);
+    expect(status.needed.map((requirement) => requirement.position).sort())
+      .toEqual(['DST', 'K', 'QB', 'RB', 'TE', 'WR']);
     expect(status.turnsLeft).toBe(13);
     expect(status.forced).toBe(false);
     expect(status.message).toBeUndefined();
   });
 
   it('clears a slot once it is filled', () => {
-    const status = evaluateRosterRequirements(buildBoard(13), { QB: 1, RB: 4 });
+    const status = evaluateRosterRequirements(buildBoard(13), { QB: 1, RB: 4, WR: 3, TE: 1 });
     expect(status.needed.map((requirement) => requirement.position).sort()).toEqual(['DST', 'K']);
   });
 
-  it('says nothing when every mandatory slot is filled', () => {
-    const status = evaluateRosterRequirements(buildBoard(13), { QB: 1, K: 1, DST: 1 });
+  it('says nothing when every lineup minimum is met', () => {
+    const status = evaluateRosterRequirements(
+      buildBoard(13),
+      { QB: 1, RB: 2, WR: 2, TE: 1, K: 1, DST: 1 },
+    );
     expect(status.needed).toEqual([]);
     expect(status.forced).toBe(false);
     expect(status.message).toBeUndefined();
   });
 
   it('warns once the free picks are nearly gone', () => {
-    // Four rounds, four turns, three mandatory slots outstanding: one free pick.
-    const status = evaluateRosterRequirements(buildBoard(4), {});
+    // Four turns left against three outstanding slots leaves one free pick.
+    const status = evaluateRosterRequirements(buildBoard(4), { RB: 1, WR: 1, TE: 1 });
     expect(status.forced).toBe(false);
     expect(status.message).toMatch(/1 free pick remaining/);
   });
 
   it('flags the point where every remaining turn is spoken for', () => {
-    const board = buildBoard(3);
-    const status = evaluateRosterRequirements(board, {});
+    const status = evaluateRosterRequirements(buildBoard(3), { RB: 1, WR: 1, TE: 1 });
     expect(status.turnsLeft).toBe(3);
     expect(status.forced).toBe(true);
     expect(status.message).toMatch(/Every remaining turn is spoken for/);
   });
 
   it('reports an unreachable legal roster when the turns have run out', () => {
-    const board = buildBoard(2);
-    const status = evaluateRosterRequirements(board, {});
+    const status = evaluateRosterRequirements(buildBoard(2), { RB: 1, WR: 1, TE: 1 });
     expect(status.message).toMatch(/cannot finish a legal roster/);
+  });
+
+  it('treats the league lineup minimums as the requirement set', () => {
+    // The league scores an illegal roster as zero, so every active minimum counts,
+    // not just the ones that are hard to fill.
+    expect(evaluateRosterRequirements(buildBoard(13), {}).needed.map((r) => r.required))
+      .toEqual([1, 1, 1, 1, 1, 1]);
   });
 
   it('counts turns from the picks already recorded', () => {

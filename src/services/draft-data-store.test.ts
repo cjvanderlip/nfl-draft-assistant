@@ -11,7 +11,7 @@ let directory: string;
 async function writeAdp(meta: Record<string, unknown> | undefined): Promise<void> {
   await mkdir(join(directory, 'adp'), { recursive: true });
   await writeFile(
-    join(directory, 'adp', 'adp-ppr-12-2026.json'),
+    join(directory, 'adp', 'adp-half-ppr-12-2026.json'),
     JSON.stringify({ status: 'Success', meta, players: [] }),
     'utf8',
   );
@@ -32,7 +32,7 @@ describe('loadAdpFreshness', () => {
     await writeAdp({ end_date: '2026-08-22', total_drafts: 7288 });
 
     expect(await loadAdpFreshness(2026, { dataDirectory: directory }, draftDay)).toEqual({
-      format: 'ppr',
+      format: 'half-ppr',
       teams: 12,
       sampledThrough: '2026-08-22',
       ageInDays: 7,
