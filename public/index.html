@@ -511,6 +511,37 @@
         }
       }
 
+      /**
+       * Turn a pasted CBS draft-order table into one team per line, in pick order.
+       *
+       * The posted order arrives as a table — a title, a note about even rounds, a
+       * "Pick / Team" header, then numbered rows. Requiring that to be retyped or
+       * hand-sorted is what made the prefill dangerous: it already looks like an
+       * order, so the path of least resistance was to press Start on the wrong one.
+       * Accepting the table as-is removes the step where the mistake happens.
+       *
+       * Numbered rows win when present, sorted by their own pick number rather than
+       * by the order they appear, so a table pasted out of sequence still lands
+       * right. Plain lists still work unchanged.
+       */
+      function normalizeDraftOrder(text) {
+        const lines = String(text).split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+        const numbered = [];
+        for (const line of lines) {
+          const match = /^(\d{1,2})[.)\s]+(.{2,})$/.exec(line);
+          if (match) {
+            numbered.push({ pick: Number(match[1]), team: match[2].trim() });
+          }
+        }
+        if (numbered.length >= 2) {
+          return numbered
+            .sort((left, right) => left.pick - right.pick)
+            .map((entry) => entry.team);
+        }
+        // No pick numbers: a plain list, minus anything that reads as table furniture.
+        return lines.filter((line) => !/^(draft order|order is reversed|pick\s+team|posted by)/i.test(line));
+      }
+
       /** Team names that belong to you, matching the server's owner registry. */
       const YOUR_TEAMS = [/^northern virginia vandals$/, /^deer valley vandals$/];
 
@@ -552,6 +583,16 @@
         }
       }
 
+      $('draft-order').addEventListener('paste', (event) => {
+        const pasted = event.clipboardData?.getData('text');
+        if (!pasted) return;
+        const teams = normalizeDraftOrder(pasted);
+        if (teams.length === 0) return;
+        event.preventDefault();
+        $('draft-order').value = teams.join('\n');
+        checkSlot();
+      });
+
       $('draft-order').addEventListener('input', checkSlot);
       $('slot').addEventListener('input', checkSlot);
       $('league').addEventListener('change', loadTeams);
@@ -564,7 +605,7 @@
       let pendingState = null;
 
       async function startDraft(force) {
-        const draftOrder = $('draft-order').value.split('\n').map((line) => line.trim()).filter(Boolean);
+        const draftOrder = normalizeDraftOrder($('draft-order').value);
         $('setup-err').textContent = '';
         try {
           const next = await api('/draft/board', {

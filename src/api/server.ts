@@ -90,6 +90,25 @@ async function serveStaticAsset(pathname: string): Promise<{ statusCode: number;
   }
 }
 
+/**
+ * Headers for a static asset.
+ *
+ * The UI is one file with no cache-busting name, so without an explicit
+ * instruction a browser is free to keep serving the copy it already has. That
+ * turns a fixed bug into a bug that is still on screen, which is exactly what
+ * happened with the draft-order slot check. This server only ever talks to one
+ * laptop on localhost, so there is nothing to gain by caching at all.
+ *
+ * @param contentType - Resolved content type for the asset.
+ * @returns Response headers.
+ */
+function staticHeaders(contentType: string): Record<string, string> {
+  return {
+    'content-type': contentType,
+    'cache-control': 'no-store, must-revalidate',
+  };
+}
+
 async function readJsonBody(request: IncomingMessage): Promise<unknown> {
   const chunks: Buffer[] = [];
   for await (const chunk of request) {
@@ -278,7 +297,7 @@ export function createApiServer(): Server {
     if (request.method === 'GET') {
       const staticAsset = await serveStaticAsset(request.url ?? '/');
       if (staticAsset) {
-        response.writeHead(staticAsset.statusCode, { 'content-type': staticAsset.contentType });
+        response.writeHead(staticAsset.statusCode, staticHeaders(staticAsset.contentType));
         response.end(staticAsset.body);
         return;
       }
