@@ -146,6 +146,16 @@
       }
       td { padding: 7px 8px; border-bottom: 1px solid #1a2429; font-variant-numeric: tabular-nums; }
       tr.take td { background: #1a2420; }
+
+      /* Rows are a pick-entry surface, so the double-click that drafts a player
+         must not leave his name selected behind the confirmation. */
+      tbody tr { cursor: pointer; user-select: none; }
+      tbody tr:hover td { background: #1c272d; }
+      tbody tr.staged td {
+        background: #16323a;
+        box-shadow: inset 0 0 0 1px var(--accent);
+      }
+      tbody tr.staged .pname { color: var(--accent); }
       .pname { font-weight: 600; }
       .pmeta { color: var(--faint); font-size: 12px; }
       .pos {
@@ -343,7 +353,7 @@
       <div class="topbar" id="topbar"></div>
 
       <div class="entry">
-        <input id="pick-input" list="player-list" placeholder="Type the pick that just happened, then Enter…" autocomplete="off" />
+        <input id="pick-input" list="player-list" placeholder="Type the pick and press Enter — or click a player below, double-click to draft…" autocomplete="off" />
         <datalist id="player-list"></datalist>
         <button id="undo">Undo</button>
         <span id="entry-msg"></span>
@@ -561,6 +571,9 @@
       $('pick-input').addEventListener('input', (event) => {
         clearTimeout(searchTimer);
         const query = event.target.value.trim();
+        if (staged && query !== staged.fullName) {
+          clearStaged(true);
+        }
         if (query.length < 2) return;
         searchTimer = setTimeout(async () => {
           try {
@@ -587,10 +600,76 @@
             return;
           }
         }
+        if (event.key === 'Escape') {
+          clearStaged(true);
+          $('pick-input').value = '';
+          return;
+        }
         if (event.key !== 'Enter') return;
         const query = event.target.value.trim();
         if (!query) return;
+        // A staged row is an exact identity, so confirming it skips name
+        // resolution entirely and can never come back ambiguous.
+        if (staged && query === staged.fullName) {
+          try {
+            await commitPick({ matchKey: staged.matchKey });
+          } catch (error) {
+            $('entry-msg').textContent = error.message;
+          }
+          return;
+        }
         await submitPick(query);
+      });
+
+      /**
+       * The player a click has singled out, awaiting confirmation.
+       *
+       * A single click only stages: the grid sits under the cursor all draft, and
+       * a stray click that silently recorded a pick would put every later pick on
+       * the wrong team. Confirming takes a second click or Enter.
+       */
+      let staged = null;
+
+      function clearStaged(rerender) {
+        if (!staged) return;
+        staged = null;
+        if (rerender) render();
+      }
+
+      /**
+       * Stage the clicked row and say exactly what confirming it would do.
+       *
+       * The pick number and team come from the snake order, not from the row, so
+       * naming them here is the only place the consequence is visible before it
+       * happens.
+       */
+      function stagePlayer(matchKey, fullName) {
+        staged = { matchKey, fullName };
+        $('pick-input').value = fullName;
+        const clock = state.onTheClock;
+        $('entry-msg').textContent = clock
+          ? `Pick ${clock.overallPick} → ${clock.teamName}: ${fullName}. Enter or double-click to confirm.`
+          : `${fullName} staged, but the draft is complete.`;
+        render();
+      }
+
+      $('players').addEventListener('click', (event) => {
+        const row = event.target.closest('tr[data-key]');
+        if (!row) return;
+        if (staged && staged.matchKey === row.dataset.key) return;
+        stagePlayer(row.dataset.key, row.dataset.name);
+      });
+
+      $('players').addEventListener('dblclick', async (event) => {
+        const row = event.target.closest('tr[data-key]');
+        if (!row) return;
+        const key = row.dataset.key;
+        staged = null;
+        try {
+          await commitPick({ matchKey: key });
+        } catch (error) {
+          $('entry-msg').textContent = error.message;
+        }
       });
 
       async function commitPick(body, suffix) {
@@ -601,6 +680,7 @@
         });
         state = next.state;
         pendingCandidates = [];
+        staged = null;
         $('pick-input').value = '';
         $('entry-msg').textContent = `${next.pick.overallPick}. ${next.pick.teamName} — ${next.pick.fullName}${suffix ?? ''}`;
         render();
@@ -833,7 +913,11 @@
             ? `${escapeHtml(player.topThreat.teamName)} <span class="pmeta">${Math.round(player.topThreat.probability * 100)}%</span>`
             : '<span class="pmeta">—</span>';
           const injury = player.injuryStatus ? ` <span class="pmeta">${escapeHtml(player.injuryStatus)}</span>` : '';
-          return `<tr class="${player.verdict === 'GONE_BY_YOUR_TURN' ? 'take' : ''}">
+          const classes = [
+            player.verdict === 'GONE_BY_YOUR_TURN' ? 'take' : '',
+            staged && staged.matchKey === player.matchKey ? 'staged' : '',
+          ].filter(Boolean).join(' ');
+          return `<tr class="${classes}" data-key="${escapeHtml(player.matchKey)}" data-name="${escapeHtml(player.fullName)}" title="Click to stage, double-click to draft">
             <td><span class="pos">${player.position}</span></td>
             <td><span class="pname">${escapeHtml(player.fullName)}</span> <span class="pmeta">${player.team}${player.byeWeek ? ' · bye ' + player.byeWeek : ''}</span>${injury}</td>
             <td class="surv pmeta">${player.adp}</td>
