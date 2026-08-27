@@ -1,0 +1,15 @@
+{
+  "name": "war-room-wingman-claude",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Claude tools for War Room Wingman: an MCP sidecar over the live board, and the pre-draft scouting brief. Deliberately a separate package so the draft-day server keeps its zero-runtime-dependency guarantee and starts even if this is broken or uninstalled.",
+  "scripts": {
+    "brief": "node draft-brief.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.121.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  }
+}

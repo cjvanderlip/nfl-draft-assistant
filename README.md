@@ -204,6 +204,31 @@ request path.
 Every board response also carries a `setup` audit (unrecognised team names, whether your slot
 holds your team), a `requirements` countdown, and `adp` freshness.
 
+## Asking Claude about the board
+
+`claude/` holds two optional tools, in their own package with their own dependencies. The
+draft-day server does not import them and its build does not compile them, so if they are
+broken or never installed, `npm start` behaves exactly as it does now. That separation is the
+whole design: they can fail, the draft cannot.
+
+```bash
+cd claude && npm install
+```
+
+- **An MCP sidecar** (`war-room-mcp.mjs`) exposes the running board to Claude Code or Claude
+  Desktop as read-only tools — board state, the survival table, manager profiles, league
+  baselines. It calls the same `localhost:3005` API the browser calls, so you can ask *"why
+  is he only 48%, and who's the threat?"* in a chat window while the draft runs. There is no
+  tool to record a pick: picks stay in the UI where a human confirms them, for the same
+  reason a single click there never drafts anybody.
+- **A pre-draft brief** (`draft-brief.mjs`) turns the manager profiles and this season's ADP
+  into a readable scouting document to print the night before, rather than a 119KB JSON file
+  nobody opens on the clock.
+
+Neither invents numbers. The survival probabilities stay in the simulation, which is measured
+and calibrated; Claude reads and explains them. Setup, tool list and costs are in
+[`claude/README.md`](claude/README.md).
+
 ## Development
 
 ```bash
