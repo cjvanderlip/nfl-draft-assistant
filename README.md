@@ -11,9 +11,19 @@ Virginia Vandals) and B-League (Deer Valley Vandals) — from the draft exports 
 
 ## Draft day, in order
 
+**The night before:**
+
 ```bash
 npm install
 npm run draft:prep     # download ADP + player metadata, then build manager profiles
+
+cd claude && npm install                        # optional, once
+node draft-brief.mjs A-LEAGUE 2026 10           # optional: printable scouting brief
+```
+
+**On the day:**
+
+```bash
 npm start              # http://localhost:3005
 ```
 
@@ -21,6 +31,10 @@ npm start              # http://localhost:3005
 the day before, not on the clock — late-August ADP moves on preseason injuries, and the
 setup screen warns when the cache is more than three days old. The seasons it downloads come
 from the filenames in `historical-draft-data/`, so dropping a new export there is enough.
+
+The two `claude/` steps are optional and never required to draft — see [Asking Claude about
+the board](#asking-claude-about-the-board). If you want the chat open during the draft, start
+the board first: the sidecar reads it over HTTP and has nothing to say until it is running.
 
 In the browser: choose the league, set the season and your draft slot, paste the draft order
 one team per line in slot order, and hit **Start draft**. Then record each pick as it happens,
@@ -176,6 +190,9 @@ supplement, name resolution on the held-out replays fell from 99% to 86%.
 - `src/services/board-persistence.ts` — the live snapshot that survives a restart.
 - `src/api/routes/board.ts` — the draft-day endpoints.
 - `scripts/` — `fetch-draft-data`, `build-manager-profiles`, `replay-draft`.
+- `claude/` — the optional Claude tools, as a separate package: `war-room-mcp.mjs` (read-only
+  MCP sidecar over the running board) and `draft-brief.mjs` (the pre-draft brief). Nothing
+  above imports anything here.
 
 ## Draft-day API
 
@@ -206,28 +223,83 @@ holds your team), a `requirements` countdown, and `adp` freshness.
 
 ## Asking Claude about the board
 
-`claude/` holds two optional tools, in their own package with their own dependencies. The
-draft-day server does not import them and its build does not compile them, so if they are
-broken or never installed, `npm start` behaves exactly as it does now. That separation is the
-whole design: they can fail, the draft cannot.
+The simulation answers *what* the number is. It does not answer *why*, or what to do about it
+given the roster you have already built. `claude/` holds two optional tools for that, in their
+own package with their own dependencies.
 
 ```bash
 cd claude && npm install
 ```
 
-- **An MCP sidecar** (`war-room-mcp.mjs`) exposes the running board to Claude Code or Claude
-  Desktop as read-only tools — board state, the survival table, manager profiles, league
-  baselines. It calls the same `localhost:3005` API the browser calls, so you can ask *"why
-  is he only 48%, and who's the threat?"* in a chat window while the draft runs. There is no
-  tool to record a pick: picks stay in the UI where a human confirms them, for the same
-  reason a single click there never drafts anybody.
-- **A pre-draft brief** (`draft-brief.mjs`) turns the manager profiles and this season's ADP
-  into a readable scouting document to print the night before, rather than a 119KB JSON file
-  nobody opens on the clock.
+**They cannot break the draft, by construction.** `claude/` has its own `package.json`, is
+excluded from `tsconfig.json`, and nothing in `src/` imports it. With `claude/node_modules`
+deleted entirely, `npm install`, `npm run build`, `npm test` and `npm start` all behave
+exactly as they do now. That is the whole design: the sidecar is allowed to fail, the board
+is not.
 
-Neither invents numbers. The survival probabilities stay in the simulation, which is measured
-and calibrated; Claude reads and explains them. Setup, tool list and costs are in
-[`claude/README.md`](claude/README.md).
+### The MCP sidecar — a chat window onto the live draft
+
+`war-room-mcp.mjs` is a read-only MCP server that calls the same `localhost:3005` API the
+browser calls. Start the board as usual, then ask questions about it while it runs.
+
+| Tool | Answers |
+| --- | --- |
+| `get_board_state` | Who is on the clock, your roster, your next two turns, recent picks, mandatory-slot countdown, setup audit, ADP freshness |
+| `get_survival` | The survival table, filterable by position, probability ceiling, and count |
+| `get_manager_profile` | One manager's measured habits, or the whole league's |
+| `get_league_tendencies` | The league baseline each manager is measured against |
+| `search_players` | Autocomplete against the available pool |
+| `get_data_status` | Cache freshness, and whether a board is live |
+
+**Claude Code** picks it up from `.mcp.json` in this directory — approve it when prompted,
+check with `/mcp`. **Claude Desktop** needs an absolute path in
+`%APPDATA%\Claude\claude_desktop_config.json`; the exact JSON is in
+[`claude/README.md`](claude/README.md). Desktop is the better draft-day ergonomic — a chat
+window rather than a coding tool. `WINGMAN_URL` overrides where the board is.
+
+The questions worth asking are the ones the **Survives** column raises but does not settle:
+
+- *"I'm on the clock at 10. Who's genuinely at risk of not coming back at 15?"*
+- *"Why is he only 48%? Which manager is the threat, and how sure are we?"*
+- *"Compare taking a TE now against waiting — what does this league's TE timing say?"*
+- *"Two RBs and no QB in round 7. What does my remaining-turn math look like?"*
+
+**It is read-only on purpose.** There is no tool to record a pick, undo one, or resync the
+board. The UI already refuses to draft anybody on a single click, because the grid sits under
+the cursor all draft and a stray click that silently recorded a pick would put every later
+pick on the wrong team. A model recording picks is that same failure mode with worse odds.
+
+### The pre-draft brief
+
+`draft-brief.mjs` turns the manager profiles and this season's ADP into a scouting document
+to read the night before — rather than a 119KB JSON file nobody opens on the clock.
+
+```bash
+cd claude
+node draft-brief.mjs A-LEAGUE 2026 10     # <LEAGUE_ID> [season] [draftSlot]
+node draft-brief.mjs B-LEAGUE 2026 10
+```
+
+It streams to the terminal and writes `data/draft-brief-<LEAGUE>-<season>.md`. `--dry-run`
+prints the prompt size and your snake picks without calling the API. Needs
+`ANTHROPIC_API_KEY`; about 17K input tokens, so roughly **$0.30 a brief**. The sidecar needs
+no key — Claude Code supplies the model.
+
+Set `BRIEF_OWNER_ID=owner-vandals` to have the brief name your team as well as your slot.
+Without it the slot line reads *"slot 10 of 12"* instead of *"slot 10 of 12 as 'Northern
+Virginia Vandals'"* — a quiet downgrade rather than an error, so it is easy to miss.
+
+Because five seasons of turnover leave more profiles than seats (B-League has 19 profiles for
+12 places), the brief is told which managers actually drafted in the most recent season and to
+lead with those.
+
+### Neither one invents numbers
+
+Survival probabilities stay in the simulation, which is measured and calibrated against
+held-out drafts. Claude reads and explains them. The tool descriptions say so explicitly, and
+the brief is required to cite the sample size behind every reach figure — so a four-pick habit
+reads as a hint rather than a fact. A model guessing probabilities on top of a model that
+measures them is strictly worse than the measurement alone.
 
 ## Development
 
@@ -240,3 +312,13 @@ npm run replay    # score the model against a held-out draft
 No runtime dependencies — the server is Node's own `http` module and the UI is a single
 static file. `data/` and `dist/` are generated; everything under `historical-draft-data/` is
 source.
+
+`claude/` is the one exception, and it is fenced off rather than excused: its dependencies
+belong to its own `package.json`, `tsconfig.json` excludes it, and no import crosses from
+`src/` into it. Adding a package there must never make it a dependency here — the root
+install, build, tests and `npm start` have to keep working with `claude/node_modules` absent
+entirely, which is worth re-checking if you touch either package:
+
+```bash
+mv claude/node_modules /tmp/nm && npm run build && npm test && mv /tmp/nm claude/node_modules
+```

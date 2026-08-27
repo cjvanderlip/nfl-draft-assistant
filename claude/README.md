@@ -67,7 +67,7 @@ Better ergonomics on draft day: a chat window rather than a coding tool. Edit
 
 The path must be absolute here, unlike in `.mcp.json`.
 
-### Configuration
+### Sidecar configuration
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
@@ -105,7 +105,22 @@ Arguments are `<LEAGUE_ID> [season] [draftSlot]`. It streams to the terminal and
 `data/draft-brief-<LEAGUE>-<season>.md`.
 
 `--dry-run` prints the prompt size and your snake picks without calling the API — worth
-running first to confirm the data loaded.
+running first to confirm the data loaded. `BRIEF_FULL=1` dumps the whole prompt rather than
+its first 1200 characters.
+
+### Brief configuration
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `ANTHROPIC_API_KEY` | — | Required. See below. |
+| `BRIEF_OWNER_ID` | unset | Owner id to name as *your* team, e.g. `owner-vandals` |
+| `ADP_FORMAT` | `half-ppr` | Which cached ADP feed to read |
+
+`BRIEF_OWNER_ID` is worth setting. Without it the slot line reads *"slot 10 of 12"*; with it,
+*"slot 10 of 12 as 'Northern Virginia Vandals'"*. It degrades quietly rather than erroring, so
+it is easy to miss that the brief no longer knows which team is yours. The ids come from
+`src/services/owner-registry.ts` — the same `ownerId` the profiles carry, which is why the
+one value works for both leagues even though the team names differ.
 
 ### It needs an API key
 
