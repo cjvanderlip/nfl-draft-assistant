@@ -42,10 +42,21 @@ function readArgs() {
   if (!leagueId) {
     throw new Error('Usage: node draft-brief.mjs <LEAGUE_ID> [season] [draftSlot]   e.g. A-LEAGUE 2026 10');
   }
+
+  const parsedSeason = Number(season ?? new Date().getFullYear());
+  if (!Number.isInteger(parsedSeason)) {
+    throw new Error(`Invalid season "${season}". Expected an integer year (e.g. 2026).`);
+  }
+
+  const parsedDraftSlot = draftSlot === undefined ? undefined : Number(draftSlot);
+  if (parsedDraftSlot !== undefined && (!Number.isInteger(parsedDraftSlot) || parsedDraftSlot < 1)) {
+    throw new Error(`Invalid draftSlot "${draftSlot}". Expected a positive integer (e.g. 10).`);
+  }
+
   return {
     leagueId: leagueId.trim().toUpperCase(),
-    season: Number(season ?? new Date().getFullYear()),
-    draftSlot: draftSlot ? Number(draftSlot) : undefined,
+    season: parsedSeason,
+    draftSlot: parsedDraftSlot,
   };
 }
 
