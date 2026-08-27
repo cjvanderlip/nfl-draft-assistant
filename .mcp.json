@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "war-room-wingman": {
+      "command": "node",
+      "args": ["claude/war-room-mcp.mjs"],
+      "env": {}
+    }
+  }
+}

@@ -12,5 +12,7 @@
     "types": ["node", "vitest/globals"],
     "noEmit": false
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts"],
+  "//": "claude/ is the Claude sidecar. It has its own package.json and its own dependencies; keeping it out of this build is what lets the draft-day server stay dependency-free and start even if the sidecar is broken or uninstalled.",
+  "exclude": ["node_modules", "dist", "claude"]
 }
