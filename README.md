@@ -285,6 +285,10 @@ prints the prompt size and your snake picks without calling the API. Needs
 `ANTHROPIC_API_KEY`; about 17K input tokens, so roughly **$0.30 a brief**. The sidecar needs
 no key — Claude Code supplies the model.
 
+Set `BRIEF_OWNER_ID=owner-vandals` to have the brief name your team as well as your slot.
+Without it the slot line reads *"slot 10 of 12"* instead of *"slot 10 of 12 as 'Northern
+Virginia Vandals'"* — a quiet downgrade rather than an error, so it is easy to miss.
+
 Because five seasons of turnover leave more profiles than seats (B-League has 19 profiles for
 12 places), the brief is told which managers actually drafted in the most recent season and to
 lead with those.
