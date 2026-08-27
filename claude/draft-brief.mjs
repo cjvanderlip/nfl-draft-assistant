@@ -205,8 +205,10 @@ async function main() {
   const teams = 12;
   const rounds = league.rounds ?? 13;
   const yourPicks = draftSlot ? picksForSlot(draftSlot, teams, rounds) : [];
-  const yourTeam = draftSlot
-    ? managers.find((manager) => manager.ownerId === 'owner-vandals')?.teamNames[0]
+
+  const ownerId = process.env.BRIEF_OWNER_ID;
+  const yourTeam = draftSlot && ownerId
+    ? managers.find((manager) => manager.ownerId === ownerId)?.teamNames[0]
     : undefined;
 
   const prompt = buildPrompt({ leagueId, season, draftSlot, league, managers, adp, yourPicks, yourTeam, teams });
