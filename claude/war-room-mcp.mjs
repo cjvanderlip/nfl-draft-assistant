@@ -73,7 +73,7 @@ async function respond(run) {
 async function fetchBoard(samples) {
   const { status, body } = await callApi(`/draft/board?samples=${samples}`);
   if (status === 404) {
-    throw new Error('No draft board is active. Open http://localhost:3005 and start a draft first.');
+    throw new Error(`No draft board is active. Open ${BASE_URL} and start a draft first.`);
   }
   if (status !== 200) {
     throw new Error(body?.error ?? `Draft server returned ${status}.`);
