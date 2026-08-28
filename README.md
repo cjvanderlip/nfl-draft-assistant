@@ -246,6 +246,8 @@ browser calls. Start the board as usual, then ask questions about it while it ru
 | --- | --- |
 | `get_board_state` | Who is on the clock, your roster, your next two turns, recent picks, mandatory-slot countdown, setup audit, ADP freshness |
 | `get_survival` | The survival table, filterable by position, probability ceiling, and count |
+| `find_tier_breaks` | Where the value cliffs are, per position, and who is last before each |
+| `compare_players` | Two to five named players side by side |
 | `get_manager_profile` | One manager's measured habits, or the whole league's |
 | `get_league_tendencies` | The league baseline each manager is measured against |
 | `search_players` | Autocomplete against the available pool |
@@ -261,8 +263,15 @@ The questions worth asking are the ones the **Survives** column raises but does 
 
 - *"I'm on the clock at 10. Who's genuinely at risk of not coming back at 15?"*
 - *"Why is he only 48%? Which manager is the threat, and how sure are we?"*
+- *"Where's the next cliff at RB, and does the last man in that tier survive to 15?"*
 - *"Compare taking a TE now against waiting — what does this league's TE timing say?"*
 - *"Two RBs and no QB in round 7. What does my remaining-turn math look like?"*
+
+`find_tier_breaks` is the one worth understanding. It splits each position where the ADP gap
+is unusually large *for that part of the board* — compared proportionally, not absolutely,
+because the top backs sit a pick apart while the ones near pick 60 sit five or six apart, and
+one fixed threshold would lump the whole top of the board together and shred the tail. A range
+with no cliff in it is labelled `gradient` rather than dressed up as a tier.
 
 **It is read-only on purpose.** There is no tool to record a pick, undo one, or resync the
 board. The UI already refuses to draft anybody on a single click, because the grid sits under
