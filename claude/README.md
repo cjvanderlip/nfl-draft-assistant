@@ -31,10 +31,33 @@ the board as usual (`npm start`), then ask Claude questions about it in a chat w
 | --- | --- |
 | `get_board_state` | Who is on the clock, your roster, your next two turns, recent picks, mandatory-slot countdown, setup audit, ADP freshness |
 | `get_survival` | The survival table, filterable by position, probability ceiling, and count |
+| `find_tier_breaks` | Where the value cliffs are, per position, and who is last before each |
+| `compare_players` | Two to five named players side by side |
 | `get_manager_profile` | One manager's measured habits, or the whole league's |
 | `get_league_tendencies` | The league baseline each manager is measured against |
 | `search_players` | Autocomplete against the available pool |
 | `get_data_status` | Cache freshness and whether a board is live |
+
+#### How the tiers are cut
+
+`find_tier_breaks` groups the available players at each position and splits them where the
+ADP gap is unusually large *for that part of the board*. Gaps are compared proportionally
+rather than absolutely, which matters: the top running backs sit about a pick apart while the
+ones near pick 60 sit five or six apart, so a single absolute threshold puts the entire top of
+the board in one tier and then shreds the tail — backwards from where you want the detail. An
+absolute floor (`minAdpGap`, default 1) still applies, because two players 0.8 picks apart are
+not two tiers however large that gap looks in proportion.
+
+`gapMultiple` (default 2.5) tunes how eagerly it splits — 1.5 roughly doubles the tier count.
+A tier wider than ten players is labelled `gradient`, because no gap inside it cleared the
+test: that range genuinely has no cliff, and saying so is more use than implying you are
+indifferent across twenty-four players.
+
+Two things to keep in mind reading the output. Tiers are cut from the simulated candidate pool
+(top ~80 by ADP), so the deepest tier at a position may be truncated rather than genuinely
+ending — and kickers and defenses simply will not appear until late. And the survival numbers
+attached to each player are **marginal and correlated**: never multiply them together to
+estimate whether a tier as a whole survives.
 
 ### It is read-only, deliberately
 
@@ -80,6 +103,8 @@ The point is questions the simulation does not answer on its own:
 
 - *"I'm on the clock at 10. Who's genuinely at risk of not coming back at 15?"*
 - *"Why is Nabers only 48%? Which manager is the threat and how sure are we?"*
+- *"Where's the next cliff at RB, and does the last man in this tier survive to 15?"*
+- *"Compare Achane, Walker and Bowers for me."*
 - *"Compare taking a TE now versus waiting — what does this league's TE timing say?"*
 - *"I have two RBs and no QB in round 7. What does my remaining-turn math look like?"*
 
